@@ -1,0 +1,4 @@
+*.out
+*.rds
+*.png
+.DS_Store

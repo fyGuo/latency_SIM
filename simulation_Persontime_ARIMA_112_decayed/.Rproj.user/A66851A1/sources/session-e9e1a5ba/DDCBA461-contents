@@ -1,0 +1,53 @@
+> # please change the following directory to your own directory
+> # setwd("/n/home00/fyguo/proj_spline/simulation_PersonTime")
+> setwd("/Users/qianzihan/Desktop/latency estimation and cox/simulation_Persontime_07")
+> source("simulate_personetime.R")
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.3     ✔ tidyr     1.3.1
+✔ purrr     1.0.4     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+> source("simulation_output.R")
+
+Attaching package: ‘future’
+
+The following object is masked from ‘package:survival’:
+
+    cluster
+
+Warning messages:
+1: replacing previous import ‘Hmisc::src’ by ‘dplyr::src’ when loading ‘LatencyA’ 
+2: replacing previous import ‘Hmisc::summarize’ by ‘dplyr::summarize’ when loading ‘LatencyA’ 
+3: replacing previous import ‘dplyr::lag’ by ‘stats::lag’ when loading ‘LatencyA’ 
+4: replacing previous import ‘dplyr::filter’ by ‘stats::filter’ when loading ‘LatencyA’ 
+5: replacing previous import ‘future::cluster’ by ‘survival::cluster’ when loading ‘LatencyA’ 
+> 
+> library(future)
+> library(furrr)
+> library(LatencyA)
+> 
+> # simulate for polynomials with different knot and degree
+> temp <- data.frame()
+> 
+> for (knot in c(5, 10, 15)){
++   for (degree in c(3, 4, 5)) {
++     result <- simulation_output(sample_size = 5000, knot = knot, degree = degree, method = "NCSpline")
++     result$knot <- knot
++     result$degree <- degree
++     temp <- rbind(temp, result)
++   }
++ }
+> temp$method <- "NCSpline"
+> saveRDS(temp, "simulation_NCSpline.rds")
+> 
+> Sys.time()
+[1] "2025-03-07 05:14:18 EST"
+> 
+> proc.time()
+      user     system    elapsed 
+315139.593   8499.647  29278.208 
