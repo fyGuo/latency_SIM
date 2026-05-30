@@ -26,16 +26,6 @@ result_term <- result_term %>% group_by(B, l) %>%
             log_HR_estimate_se = sd(log_HR_estimate))
 result_term$method <- "Term-search RCspline model"
 
-# restricted cubic splines with 5 degrees of freedom
-
-result_NCS <- readRDS("simulation_NCSpline.rds")
-result_NCS <- result_NCS %>% filter(degree == 5) %>%
-  group_by(B, l) %>%
-  summarise(log_HR_true = mean(log_HR_true),
-            log_HR_estimate_mean = mean(log_HR_estimate),
-            log_HR_estimate_se = sd(log_HR_estimate))
-result_NCS$method <- "Spline model with df = 5"
-
 
 
 # polynomial with 5 degrees of freedom
@@ -54,7 +44,7 @@ temp$B <- paste0("B==", temp$B)
 temp$B <- factor(temp$B,
                  levels = c("B==0.4", "B==0.2", "B==0.1"))
 temp$method <- factor(temp$method,
-                      levels = c("Knot-search RCspline model", "Term-search RCspline model", "Spline model with df = 5", "Polynomial model with df = 3"))
+                      levels = c("Knot-search RCspline model", "Term-search RCspline model", "Polynomial model with df = 5"))
 temp2 <- temp
 temp2$log_HR_estimate_mean <- temp2$log_HR_true
 temp2$method <- "True latency-risk curve"
@@ -62,7 +52,7 @@ temp2$log_HR_estimate_se <- 0
 temp <- rbind(temp, temp2)
 
 temp$method <- factor(temp$method,
-                    levels = c("True latency-risk curve", "Knot-search RCspline model", "Term-search RCspline model", "Polynomial model with df = 5", "Spline model with df = 5"))
+                    levels = c("True latency-risk curve", "Knot-search RCspline model", "Term-search RCspline model", "Polynomial model with df = 5"))
 
 saveRDS(temp, "data_figure2_02.rds")
 
@@ -105,7 +95,7 @@ tail_plot <- ggplot(temp) +
        shape = "Models") + 
   theme(legend.position = "bottom",
         legend.background = element_blank())+
-  coord_cartesian(xlim = c(10, 15), ylim = c(-0.002, 0.005))
+  coord_cartesian(xlim = c(10, 15), ylim = c(-0.002, 0.01))
 ggarrange(whole_plot, tail_plot, nrow = 2, labels = c("A", "B"))
 
 width <-  23
