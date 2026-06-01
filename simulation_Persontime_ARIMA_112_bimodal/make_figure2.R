@@ -42,7 +42,7 @@ temp <- rbind(result_knot, result_term,  result_poly)
 
 temp$B <- paste0("B==", temp$B)
 temp$B <- factor(temp$B,
-                 levels = c("B==0.4", "B==0.2", "B==0.1"))
+                 levels = c("B==-1", "B==1"))
 temp$method <- factor(temp$method,
                       levels = c("Knot-search RCspline model", "Term-search RCspline model", "Polynomial model with df = 5"))
 temp2 <- temp
@@ -95,19 +95,17 @@ tail_plot <- ggplot(temp) +
        shape = "Models") + 
   theme(legend.position = "bottom",
         legend.background = element_blank())+
-  coord_cartesian(xlim = c(10, 15), ylim = c(-0.002, 0.01))
+  coord_cartesian(xlim = c(10, 15), ylim = c(-0.015, 0.015))
 ggarrange(whole_plot, tail_plot, nrow = 2, labels = c("A", "B"))
-
 
 width <-  23
 height <- width*0.8
 ggsave("figure2.png", units = "cm", width =width, height = height , dpi = 300)
 
-
 #######################
 # randomly select 20 curves to show the variability of the estimates
 set.seed(123)
-index <- sample(1:500, 10)
+index <- sample(1:300, 10)
 result_knot_all <- readRDS("simulation_KnotGridSearch.rds")
 result_knot_all <- result_knot_all %>% filter(sim_id %in% index)
 result_knot_all$method <- "Knot-search RCspline model"
@@ -129,7 +127,7 @@ temp_all <- rbind(result_knot_all, result_term_all,  result_poly_all)
 
 temp_all$B <- paste0("B==", temp_all$B)
 temp_all$B <- factor(temp_all$B,
-                 levels = c("B==0.4", "B==0.2", "B==0.1"))
+                 levels = c("B==-1", "B==1", "B==2"))
 temp_all$method <- factor(temp_all$method,
                       levels = c("Knot-search RCspline model", "Term-search RCspline model", "Polynomial model with df = 5"))
 
