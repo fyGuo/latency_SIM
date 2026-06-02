@@ -1,0 +1,324 @@
+> setwd(tryCatch(
++   dirname(rstudioapi::getSourceEditorContext()$path),
++   error = function(e) getwd()
++ ))
+> 
+> source("simulate_personetime.R")
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.2.1     ✔ readr     2.2.0
+✔ forcats   1.0.1     ✔ stringr   1.6.0
+✔ ggplot2   4.0.3     ✔ tibble    3.3.1
+✔ lubridate 1.9.5     ✔ tidyr     1.3.2
+✔ purrr     1.2.2     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+> source("simulation_output.R")
+
+Attaching package: ‘future’
+
+The following object is masked from ‘package:survival’:
+
+    cluster
+
+Warning messages:
+1: replacing previous import ‘Hmisc::summarize’ by ‘dplyr::summarize’ when loading ‘LatencyA’ 
+2: replacing previous import ‘Hmisc::src’ by ‘dplyr::src’ when loading ‘LatencyA’ 
+3: replacing previous import ‘dplyr::lag’ by ‘stats::lag’ when loading ‘LatencyA’ 
+4: replacing previous import ‘dplyr::filter’ by ‘stats::filter’ when loading ‘LatencyA’ 
+5: replacing previous import ‘future::cluster’ by ‘survival::cluster’ when loading ‘LatencyA’ 
+> 
+> library(future)
+> library(furrr)
+> library(parallelly)
+> library(LatencyA)
+> library(tictoc)
+> 
+> # Two-machine cluster: 11 local cores + 8 cores in Docker on the other Mac.
+> # "r-worker" is resolved via ~/.ssh/config (port 2222, user root, key auth).
+> local_workers  <- parallel::detectCores() - 1   # 11
+> remote_workers <- 4                              # M1 MacBook Air (T8103)
+> 
+> cl <- parallelly::makeClusterPSOCK(
++   workers = c(
++     rep("localhost", local_workers),
++     rep("r-worker",  remote_workers)
++   ),
++   homogeneous = FALSE,          # local = macOS R, remote = Linux Docker R
++   rscript      = "/usr/local/bin/Rscript",
++   verbose      = TRUE
++ )
+[13:52:02.135] [local output] makeClusterPSOCK() ...
+[13:52:02.218] |  [local output] Workers: [n = 15] ‘localhost’, ‘localhost’, ‘localhost’, ‘localhost’, ‘localhost’, ‘localhost’, ‘localhost’, ‘localhost’, ‘localhost’, ‘localhost’, ‘localhost’, ‘r-worker’, ‘r-worker’, ‘r-worker’, ‘r-worker’
+[13:52:02.219] |  [local output] Base port: 11905
+[13:52:02.219] |  [local output] Getting setup options for 15 cluster nodes ...
+[13:52:02.219] |  [local output] Node #1 of 15 ...
+[13:52:02.219] |  [local output] localMachine=TRUE => revtunnel=FALSE
+
+[13:52:02.220] |  Testing if worker's PID can be inferred: ‘'/usr/local/bin/Rscript' -e 'try(suppressWarnings(cat(Sys.getpid(),file="/var/folders/0v/hh3bhh392yb583nfcz40p8d80000gn/T//RtmpogJu3m/worker.rank=1.parallelly.parent=90137.1601967a3ade2.pid")),silent=TRUE)' -e 'file.exists("/var/folders/0v/hh3bhh392yb583nfcz40p8d80000gn/T//RtmpogJu3m/worker.rank=1.parallelly.parent=90137.1601967a3ade2.pid")'’
+[13:52:02.378] |  - Possible to infer worker's PID: TRUE
+[13:52:02.378] |  [local output] Rscript port: 11905
+
+[13:52:02.379] |  [local output] Node #2 of 15 ...
+[13:52:02.379] |  [local output] localMachine=TRUE => revtunnel=FALSE
+
+[13:52:02.379] |  [local output] Rscript port: 11905
+
+[13:52:02.379] |  [local output] Node #3 of 15 ...
+[13:52:02.379] |  [local output] localMachine=TRUE => revtunnel=FALSE
+
+[13:52:02.379] |  [local output] Rscript port: 11905
+
+[13:52:02.379] |  [local output] Node #4 of 15 ...
+[13:52:02.380] |  [local output] localMachine=TRUE => revtunnel=FALSE
+
+[13:52:02.380] |  [local output] Rscript port: 11905
+
+[13:52:02.380] |  [local output] Node #5 of 15 ...
+[13:52:02.380] |  [local output] localMachine=TRUE => revtunnel=FALSE
+
+[13:52:02.380] |  [local output] Rscript port: 11905
+
+[13:52:02.380] |  [local output] Node #6 of 15 ...
+[13:52:02.380] |  [local output] localMachine=TRUE => revtunnel=FALSE
+
+[13:52:02.381] |  [local output] Rscript port: 11905
+
+[13:52:02.381] |  [local output] Node #7 of 15 ...
+[13:52:02.381] |  [local output] localMachine=TRUE => revtunnel=FALSE
+
+[13:52:02.381] |  [local output] Rscript port: 11905
+
+[13:52:02.381] |  [local output] Node #8 of 15 ...
+[13:52:02.381] |  [local output] localMachine=TRUE => revtunnel=FALSE
+
+[13:52:02.381] |  [local output] Rscript port: 11905
+
+[13:52:02.381] |  [local output] Node #9 of 15 ...
+[13:52:02.381] |  [local output] localMachine=TRUE => revtunnel=FALSE
+
+[13:52:02.382] |  [local output] Rscript port: 11905
+
+[13:52:02.382] |  [local output] Node #10 of 15 ...
+[13:52:02.382] |  [local output] localMachine=TRUE => revtunnel=FALSE
+
+[13:52:02.382] |  [local output] Rscript port: 11905
+
+[13:52:02.382] |  [local output] Node #11 of 15 ...
+[13:52:02.382] |  [local output] localMachine=TRUE => revtunnel=FALSE
+
+[13:52:02.382] |  [local output] Rscript port: 11905
+
+[13:52:02.382] |  [local output] Node #12 of 15 ...
+[13:52:02.383] |  [local output] Will search for all 'rshcmd' available
+
+[13:52:02.397] |  [local output] Found the following available 'rshcmd':
+[local output]  1. ‘/usr/bin/ssh’ [type=‘ssh’, version=‘OpenSSH_10.0p2, LibreSSL 3.3.6’]
+[13:52:02.397] |  [local output] localMachine=FALSE && 'rshcmd' type is "ssh" => revtunnel=TRUE
+
+[13:52:02.397] |  [local output] Rscript port: 11905 + 11 = 11916
+
+[13:52:02.398] |  [local output] Using 'rshcmd': ‘/usr/bin/ssh’ [type=‘ssh’, version=‘OpenSSH_10.0p2, LibreSSL 3.3.6’]
+[13:52:02.398] |  [local output] Node #13 of 15 ...
+[13:52:02.398] |  [local output] Will search for all 'rshcmd' available
+
+[13:52:02.407] |  [local output] Found the following available 'rshcmd':
+[local output]  1. ‘/usr/bin/ssh’ [type=‘ssh’, version=‘OpenSSH_10.0p2, LibreSSL 3.3.6’]
+[13:52:02.407] |  [local output] localMachine=FALSE && 'rshcmd' type is "ssh" => revtunnel=TRUE
+
+[13:52:02.407] |  [local output] Rscript port: 11905 + 12 = 11917
+
+[13:52:02.408] |  [local output] Using 'rshcmd': ‘/usr/bin/ssh’ [type=‘ssh’, version=‘OpenSSH_10.0p2, LibreSSL 3.3.6’]
+[13:52:02.408] |  [local output] Node #14 of 15 ...
+[13:52:02.408] |  [local output] Will search for all 'rshcmd' available
+
+[13:52:02.416] |  [local output] Found the following available 'rshcmd':
+[local output]  1. ‘/usr/bin/ssh’ [type=‘ssh’, version=‘OpenSSH_10.0p2, LibreSSL 3.3.6’]
+[13:52:02.416] |  [local output] localMachine=FALSE && 'rshcmd' type is "ssh" => revtunnel=TRUE
+
+[13:52:02.416] |  [local output] Rscript port: 11905 + 13 = 11918
+
+[13:52:02.416] |  [local output] Using 'rshcmd': ‘/usr/bin/ssh’ [type=‘ssh’, version=‘OpenSSH_10.0p2, LibreSSL 3.3.6’]
+[13:52:02.416] |  [local output] Node #15 of 15 ...
+[13:52:02.417] |  [local output] Will search for all 'rshcmd' available
+
+[13:52:02.425] |  [local output] Found the following available 'rshcmd':
+[local output]  1. ‘/usr/bin/ssh’ [type=‘ssh’, version=‘OpenSSH_10.0p2, LibreSSL 3.3.6’]
+[13:52:02.425] |  [local output] localMachine=FALSE && 'rshcmd' type is "ssh" => revtunnel=TRUE
+
+[13:52:02.425] |  [local output] Rscript port: 11905 + 14 = 11919
+
+[13:52:02.425] |  [local output] Using 'rshcmd': ‘/usr/bin/ssh’ [type=‘ssh’, version=‘OpenSSH_10.0p2, LibreSSL 3.3.6’]
+[13:52:02.425] |  [local output] Getting setup options for 15 cluster nodes ... done
+[13:52:02.426] |  [local output] Creating node #1 of 15 ...
+[13:52:02.426] |  :  [local output] setting up node
+[13:52:02.426] |  :  [local output] attempt #1 of 3
+[13:52:02.426] |  :  [local output] Starting worker #1 on ‘localhost’: '/usr/local/bin/Rscript' --default-packages=datasets,utils,grDevices,graphics,stats,methods -e 'try(suppressWarnings(cat(Sys.getpid(),file="/var/folders/0v/hh3bhh392yb583nfcz40p8d80000gn/T//RtmpogJu3m/worker.rank=1.parallelly.parent=90137.1601967a3ade2.pid")),silent=TRUE)' -e 'options(socketOptions="no-delay")' -e 'workRSOCK<-tryCatch(parallel:::.workRSOCK,error=function(e)parallel:::.slaveRSOCK);workRSOCK()' MASTER=localhost PORT=11905 OUT=/dev/null TIMEOUT=2592000 XDR=FALSE SETUPTIMEOUT=120 SETUPSTRATEGY=sequential
+[13:52:02.428] |  :  [local output] - Exit code of system() call: 0
+[13:52:02.428] |  :  [local output] Waiting for worker #1 on ‘localhost’ to connect back
+[13:52:02.509] |  :  [local output] Connection with worker #1 on ‘localhost’ established
+[13:52:02.509] |  [local output] Creating node #1 of 15 ... done
+[13:52:02.509] |  [local output] Creating node #2 of 15 ...
+[13:52:02.509] |  :  [local output] setting up node
+[13:52:02.509] |  :  [local output] attempt #1 of 3
+[13:52:02.509] |  :  [local output] Starting worker #2 on ‘localhost’: '/usr/local/bin/Rscript' --default-packages=datasets,utils,grDevices,graphics,stats,methods -e 'try(suppressWarnings(cat(Sys.getpid(),file="/var/folders/0v/hh3bhh392yb583nfcz40p8d80000gn/T//RtmpogJu3m/worker.rank=2.parallelly.parent=90137.160192aed0596.pid")),silent=TRUE)' -e 'options(socketOptions="no-delay")' -e 'workRSOCK<-tryCatch(parallel:::.workRSOCK,error=function(e)parallel:::.slaveRSOCK);workRSOCK()' MASTER=localhost PORT=11905 OUT=/dev/null TIMEOUT=2592000 XDR=FALSE SETUPTIMEOUT=120 SETUPSTRATEGY=sequential
+[13:52:02.512] |  :  [local output] - Exit code of system() call: 0
+[13:52:02.512] |  :  [local output] Waiting for worker #2 on ‘localhost’ to connect back
+[13:52:02.592] |  :  [local output] Connection with worker #2 on ‘localhost’ established
+[13:52:02.592] |  [local output] Creating node #2 of 15 ... done
+[13:52:02.592] |  [local output] Creating node #3 of 15 ...
+[13:52:02.592] |  :  [local output] setting up node
+[13:52:02.592] |  :  [local output] attempt #1 of 3
+[13:52:02.592] |  :  [local output] Starting worker #3 on ‘localhost’: '/usr/local/bin/Rscript' --default-packages=datasets,utils,grDevices,graphics,stats,methods -e 'try(suppressWarnings(cat(Sys.getpid(),file="/var/folders/0v/hh3bhh392yb583nfcz40p8d80000gn/T//RtmpogJu3m/worker.rank=3.parallelly.parent=90137.160192f09d0de.pid")),silent=TRUE)' -e 'options(socketOptions="no-delay")' -e 'workRSOCK<-tryCatch(parallel:::.workRSOCK,error=function(e)parallel:::.slaveRSOCK);workRSOCK()' MASTER=localhost PORT=11905 OUT=/dev/null TIMEOUT=2592000 XDR=FALSE SETUPTIMEOUT=120 SETUPSTRATEGY=sequential
+[13:52:02.595] |  :  [local output] - Exit code of system() call: 0
+[13:52:02.595] |  :  [local output] Waiting for worker #3 on ‘localhost’ to connect back
+[13:52:02.679] |  :  [local output] Connection with worker #3 on ‘localhost’ established
+[13:52:02.679] |  [local output] Creating node #3 of 15 ... done
+[13:52:02.679] |  [local output] Creating node #4 of 15 ...
+[13:52:02.679] |  :  [local output] setting up node
+[13:52:02.679] |  :  [local output] attempt #1 of 3
+[13:52:02.680] |  :  [local output] Starting worker #4 on ‘localhost’: '/usr/local/bin/Rscript' --default-packages=datasets,utils,grDevices,graphics,stats,methods -e 'try(suppressWarnings(cat(Sys.getpid(),file="/var/folders/0v/hh3bhh392yb583nfcz40p8d80000gn/T//RtmpogJu3m/worker.rank=4.parallelly.parent=90137.160192d6fb6f2.pid")),silent=TRUE)' -e 'options(socketOptions="no-delay")' -e 'workRSOCK<-tryCatch(parallel:::.workRSOCK,error=function(e)parallel:::.slaveRSOCK);workRSOCK()' MASTER=localhost PORT=11905 OUT=/dev/null TIMEOUT=2592000 XDR=FALSE SETUPTIMEOUT=120 SETUPSTRATEGY=sequential
+[13:52:02.683] |  :  [local output] - Exit code of system() call: 0
+[13:52:02.683] |  :  [local output] Waiting for worker #4 on ‘localhost’ to connect back
+[13:52:02.765] |  :  [local output] Connection with worker #4 on ‘localhost’ established
+[13:52:02.766] |  [local output] Creating node #4 of 15 ... done
+[13:52:02.766] |  [local output] Creating node #5 of 15 ...
+[13:52:02.766] |  :  [local output] setting up node
+[13:52:02.766] |  :  [local output] attempt #1 of 3
+[13:52:02.766] |  :  [local output] Starting worker #5 on ‘localhost’: '/usr/local/bin/Rscript' --default-packages=datasets,utils,grDevices,graphics,stats,methods -e 'try(suppressWarnings(cat(Sys.getpid(),file="/var/folders/0v/hh3bhh392yb583nfcz40p8d80000gn/T//RtmpogJu3m/worker.rank=5.parallelly.parent=90137.16019153e12c.pid")),silent=TRUE)' -e 'options(socketOptions="no-delay")' -e 'workRSOCK<-tryCatch(parallel:::.workRSOCK,error=function(e)parallel:::.slaveRSOCK);workRSOCK()' MASTER=localhost PORT=11905 OUT=/dev/null TIMEOUT=2592000 XDR=FALSE SETUPTIMEOUT=120 SETUPSTRATEGY=sequential
+[13:52:02.768] |  :  [local output] - Exit code of system() call: 0
+[13:52:02.768] |  :  [local output] Waiting for worker #5 on ‘localhost’ to connect back
+[13:52:02.852] |  :  [local output] Connection with worker #5 on ‘localhost’ established
+[13:52:02.852] |  [local output] Creating node #5 of 15 ... done
+[13:52:02.852] |  [local output] Creating node #6 of 15 ...
+[13:52:02.852] |  :  [local output] setting up node
+[13:52:02.852] |  :  [local output] attempt #1 of 3
+[13:52:02.852] |  :  [local output] Starting worker #6 on ‘localhost’: '/usr/local/bin/Rscript' --default-packages=datasets,utils,grDevices,graphics,stats,methods -e 'try(suppressWarnings(cat(Sys.getpid(),file="/var/folders/0v/hh3bhh392yb583nfcz40p8d80000gn/T//RtmpogJu3m/worker.rank=6.parallelly.parent=90137.1601929e41062.pid")),silent=TRUE)' -e 'options(socketOptions="no-delay")' -e 'workRSOCK<-tryCatch(parallel:::.workRSOCK,error=function(e)parallel:::.slaveRSOCK);workRSOCK()' MASTER=localhost PORT=11905 OUT=/dev/null TIMEOUT=2592000 XDR=FALSE SETUPTIMEOUT=120 SETUPSTRATEGY=sequential
+[13:52:02.855] |  :  [local output] - Exit code of system() call: 0
+[13:52:02.855] |  :  [local output] Waiting for worker #6 on ‘localhost’ to connect back
+[13:52:02.936] |  :  [local output] Connection with worker #6 on ‘localhost’ established
+[13:52:02.936] |  [local output] Creating node #6 of 15 ... done
+[13:52:02.936] |  [local output] Creating node #7 of 15 ...
+[13:52:02.936] |  :  [local output] setting up node
+[13:52:02.936] |  :  [local output] attempt #1 of 3
+[13:52:02.936] |  :  [local output] Starting worker #7 on ‘localhost’: '/usr/local/bin/Rscript' --default-packages=datasets,utils,grDevices,graphics,stats,methods -e 'try(suppressWarnings(cat(Sys.getpid(),file="/var/folders/0v/hh3bhh392yb583nfcz40p8d80000gn/T//RtmpogJu3m/worker.rank=7.parallelly.parent=90137.160193befa76a.pid")),silent=TRUE)' -e 'options(socketOptions="no-delay")' -e 'workRSOCK<-tryCatch(parallel:::.workRSOCK,error=function(e)parallel:::.slaveRSOCK);workRSOCK()' MASTER=localhost PORT=11905 OUT=/dev/null TIMEOUT=2592000 XDR=FALSE SETUPTIMEOUT=120 SETUPSTRATEGY=sequential
+[13:52:02.939] |  :  [local output] - Exit code of system() call: 0
+[13:52:02.939] |  :  [local output] Waiting for worker #7 on ‘localhost’ to connect back
+[13:52:03.019] |  :  [local output] Connection with worker #7 on ‘localhost’ established
+[13:52:03.019] |  [local output] Creating node #7 of 15 ... done
+[13:52:03.019] |  [local output] Creating node #8 of 15 ...
+[13:52:03.019] |  :  [local output] setting up node
+[13:52:03.019] |  :  [local output] attempt #1 of 3
+[13:52:03.019] |  :  [local output] Starting worker #8 on ‘localhost’: '/usr/local/bin/Rscript' --default-packages=datasets,utils,grDevices,graphics,stats,methods -e 'try(suppressWarnings(cat(Sys.getpid(),file="/var/folders/0v/hh3bhh392yb583nfcz40p8d80000gn/T//RtmpogJu3m/worker.rank=8.parallelly.parent=90137.1601972d83ee3.pid")),silent=TRUE)' -e 'options(socketOptions="no-delay")' -e 'workRSOCK<-tryCatch(parallel:::.workRSOCK,error=function(e)parallel:::.slaveRSOCK);workRSOCK()' MASTER=localhost PORT=11905 OUT=/dev/null TIMEOUT=2592000 XDR=FALSE SETUPTIMEOUT=120 SETUPSTRATEGY=sequential
+[13:52:03.022] |  :  [local output] - Exit code of system() call: 0
+[13:52:03.022] |  :  [local output] Waiting for worker #8 on ‘localhost’ to connect back
+[13:52:03.103] |  :  [local output] Connection with worker #8 on ‘localhost’ established
+[13:52:03.103] |  [local output] Creating node #8 of 15 ... done
+[13:52:03.103] |  [local output] Creating node #9 of 15 ...
+[13:52:03.103] |  :  [local output] setting up node
+[13:52:03.103] |  :  [local output] attempt #1 of 3
+[13:52:03.103] |  :  [local output] Starting worker #9 on ‘localhost’: '/usr/local/bin/Rscript' --default-packages=datasets,utils,grDevices,graphics,stats,methods -e 'try(suppressWarnings(cat(Sys.getpid(),file="/var/folders/0v/hh3bhh392yb583nfcz40p8d80000gn/T//RtmpogJu3m/worker.rank=9.parallelly.parent=90137.160195308e3fc.pid")),silent=TRUE)' -e 'options(socketOptions="no-delay")' -e 'workRSOCK<-tryCatch(parallel:::.workRSOCK,error=function(e)parallel:::.slaveRSOCK);workRSOCK()' MASTER=localhost PORT=11905 OUT=/dev/null TIMEOUT=2592000 XDR=FALSE SETUPTIMEOUT=120 SETUPSTRATEGY=sequential
+[13:52:03.106] |  :  [local output] - Exit code of system() call: 0
+[13:52:03.106] |  :  [local output] Waiting for worker #9 on ‘localhost’ to connect back
+[13:52:03.185] |  :  [local output] Connection with worker #9 on ‘localhost’ established
+[13:52:03.185] |  [local output] Creating node #9 of 15 ... done
+[13:52:03.185] |  [local output] Creating node #10 of 15 ...
+[13:52:03.185] |  :  [local output] setting up node
+[13:52:03.185] |  :  [local output] attempt #1 of 3
+[13:52:03.186] |  :  [local output] Starting worker #10 on ‘localhost’: '/usr/local/bin/Rscript' --default-packages=datasets,utils,grDevices,graphics,stats,methods -e 'try(suppressWarnings(cat(Sys.getpid(),file="/var/folders/0v/hh3bhh392yb583nfcz40p8d80000gn/T//RtmpogJu3m/worker.rank=10.parallelly.parent=90137.160196cafdffa.pid")),silent=TRUE)' -e 'options(socketOptions="no-delay")' -e 'workRSOCK<-tryCatch(parallel:::.workRSOCK,error=function(e)parallel:::.slaveRSOCK);workRSOCK()' MASTER=localhost PORT=11905 OUT=/dev/null TIMEOUT=2592000 XDR=FALSE SETUPTIMEOUT=120 SETUPSTRATEGY=sequential
+[13:52:03.188] |  :  [local output] - Exit code of system() call: 0
+[13:52:03.188] |  :  [local output] Waiting for worker #10 on ‘localhost’ to connect back
+[13:52:03.270] |  :  [local output] Connection with worker #10 on ‘localhost’ established
+[13:52:03.270] |  [local output] Creating node #10 of 15 ... done
+[13:52:03.270] |  [local output] Creating node #11 of 15 ...
+[13:52:03.270] |  :  [local output] setting up node
+[13:52:03.270] |  :  [local output] attempt #1 of 3
+[13:52:03.270] |  :  [local output] Starting worker #11 on ‘localhost’: '/usr/local/bin/Rscript' --default-packages=datasets,utils,grDevices,graphics,stats,methods -e 'try(suppressWarnings(cat(Sys.getpid(),file="/var/folders/0v/hh3bhh392yb583nfcz40p8d80000gn/T//RtmpogJu3m/worker.rank=11.parallelly.parent=90137.16019e99cdd5.pid")),silent=TRUE)' -e 'options(socketOptions="no-delay")' -e 'workRSOCK<-tryCatch(parallel:::.workRSOCK,error=function(e)parallel:::.slaveRSOCK);workRSOCK()' MASTER=localhost PORT=11905 OUT=/dev/null TIMEOUT=2592000 XDR=FALSE SETUPTIMEOUT=120 SETUPSTRATEGY=sequential
+[13:52:03.273] |  :  [local output] - Exit code of system() call: 0
+[13:52:03.273] |  :  [local output] Waiting for worker #11 on ‘localhost’ to connect back
+[13:52:03.357] |  :  [local output] Connection with worker #11 on ‘localhost’ established
+[13:52:03.358] |  [local output] Creating node #11 of 15 ... done
+[13:52:03.358] |  [local output] Creating node #12 of 15 ...
+[13:52:03.358] |  :  [local output] setting up node
+[13:52:03.358] |  :  [local output] attempt #1 of 3
+[13:52:03.358] |  :  [local output] Starting worker #12 on ‘r-worker’: '/usr/bin/ssh' -R 11916:localhost:11905 r-worker "'/usr/local/bin/Rscript' --default-packages=datasets,utils,grDevices,graphics,stats,methods -e 'options(socketOptions=\"no-delay\")' -e 'workRSOCK<-tryCatch(parallel:::.workRSOCK,error=function(e)parallel:::.slaveRSOCK);workRSOCK()' MASTER=localhost PORT=11916 OUT=/dev/null TIMEOUT=2592000 XDR=FALSE SETUPTIMEOUT=120 SETUPSTRATEGY=sequential"
+[13:52:03.361] |  :  [local output] - Exit code of system() call: 0
+[13:52:03.361] |  :  [local output] Waiting for worker #12 on ‘r-worker’ to connect back
+[13:52:03.947] |  :  [local output] Connection with worker #12 on ‘r-worker’ established
+[13:52:03.947] |  [local output] Creating node #12 of 15 ... done
+[13:52:03.947] |  [local output] Creating node #13 of 15 ...
+[13:52:03.947] |  :  [local output] setting up node
+[13:52:03.947] |  :  [local output] attempt #1 of 3
+[13:52:03.947] |  :  [local output] Starting worker #13 on ‘r-worker’: '/usr/bin/ssh' -R 11917:localhost:11905 r-worker "'/usr/local/bin/Rscript' --default-packages=datasets,utils,grDevices,graphics,stats,methods -e 'options(socketOptions=\"no-delay\")' -e 'workRSOCK<-tryCatch(parallel:::.workRSOCK,error=function(e)parallel:::.slaveRSOCK);workRSOCK()' MASTER=localhost PORT=11917 OUT=/dev/null TIMEOUT=2592000 XDR=FALSE SETUPTIMEOUT=120 SETUPSTRATEGY=sequential"
+[13:52:03.951] |  :  [local output] - Exit code of system() call: 0
+[13:52:03.951] |  :  [local output] Waiting for worker #13 on ‘r-worker’ to connect back
+[13:52:04.239] |  :  [local output] Connection with worker #13 on ‘r-worker’ established
+[13:52:04.239] |  [local output] Creating node #13 of 15 ... done
+[13:52:04.239] |  [local output] Creating node #14 of 15 ...
+[13:52:04.239] |  :  [local output] setting up node
+[13:52:04.239] |  :  [local output] attempt #1 of 3
+[13:52:04.239] |  :  [local output] Starting worker #14 on ‘r-worker’: '/usr/bin/ssh' -R 11918:localhost:11905 r-worker "'/usr/local/bin/Rscript' --default-packages=datasets,utils,grDevices,graphics,stats,methods -e 'options(socketOptions=\"no-delay\")' -e 'workRSOCK<-tryCatch(parallel:::.workRSOCK,error=function(e)parallel:::.slaveRSOCK);workRSOCK()' MASTER=localhost PORT=11918 OUT=/dev/null TIMEOUT=2592000 XDR=FALSE SETUPTIMEOUT=120 SETUPSTRATEGY=sequential"
+[13:52:04.243] |  :  [local output] - Exit code of system() call: 0
+[13:52:04.243] |  :  [local output] Waiting for worker #14 on ‘r-worker’ to connect back
+[13:52:04.533] |  :  [local output] Connection with worker #14 on ‘r-worker’ established
+[13:52:04.534] |  [local output] Creating node #14 of 15 ... done
+[13:52:04.534] |  [local output] Creating node #15 of 15 ...
+[13:52:04.534] |  :  [local output] setting up node
+[13:52:04.534] |  :  [local output] attempt #1 of 3
+[13:52:04.534] |  :  [local output] Starting worker #15 on ‘r-worker’: '/usr/bin/ssh' -R 11919:localhost:11905 r-worker "'/usr/local/bin/Rscript' --default-packages=datasets,utils,grDevices,graphics,stats,methods -e 'options(socketOptions=\"no-delay\")' -e 'workRSOCK<-tryCatch(parallel:::.workRSOCK,error=function(e)parallel:::.slaveRSOCK);workRSOCK()' MASTER=localhost PORT=11919 OUT=/dev/null TIMEOUT=2592000 XDR=FALSE SETUPTIMEOUT=120 SETUPSTRATEGY=sequential"
+[13:52:04.539] |  :  [local output] - Exit code of system() call: 0
+[13:52:04.540] |  :  [local output] Waiting for worker #15 on ‘r-worker’ to connect back
+[13:52:04.943] |  :  [local output] Connection with worker #15 on ‘r-worker’ established
+[13:52:04.944] |  [local output] Creating node #15 of 15 ... done
+[13:52:04.944] |  [local output] Launching of 15 workers completed
+[13:52:04.944] |  [local output] Number of nodes in cluster: 15
+[13:52:04.944] |  [local output] Collecting session information from 15 workers
+[13:52:04.951] |  :  [local output] Worker #1 of 15
+[13:52:04.952] |  :  [local output] Worker #2 of 15
+[13:52:04.953] |  :  [local output] Worker #3 of 15
+[13:52:04.954] |  :  [local output] Worker #4 of 15
+[13:52:04.954] |  :  [local output] Worker #5 of 15
+[13:52:04.955] |  :  [local output] Worker #6 of 15
+[13:52:04.956] |  :  [local output] Worker #7 of 15
+[13:52:04.957] |  :  [local output] Worker #8 of 15
+[13:52:04.958] |  :  [local output] Worker #9 of 15
+[13:52:04.959] |  :  [local output] Worker #10 of 15
+[13:52:04.959] |  :  [local output] Worker #11 of 15
+[13:52:04.972] |  :  [local output] Worker #12 of 15
+[13:52:04.989] |  :  [local output] Worker #13 of 15
+[13:52:05.000] |  :  [local output] Worker #14 of 15
+[13:52:05.011] |  :  [local output] Worker #15 of 15
+[13:52:05.012] |  [local output] Collecting session information from 15 workers
+[13:52:05.012] [local output] makeClusterPSOCK() ... done
+> plan(cluster, workers = cl)
+> on.exit(parallel::stopCluster(cl), add = TRUE)
+> # if in the usual R session, you can just use plan(multisession).
+> 
+> 
+> tic()
+> # simulate for polynomials with different knot and degree
+> # positive = FALSE: all weights = 0 (null effect)
+> # positive = TRUE:  all weights = A (constant positive effect)
+> temp <- data.frame()
+> 
+> for (positive in c(FALSE, TRUE)){
++   for (degree in c(5)) {
++     result <- simulation_output(sample_size = 5000, positive = positive, degree = degree, method = "Polynomial")
++     result$positive <- positive
++     result$degree <- degree
++     temp <- rbind(temp, result)
++   }
++ }
+There were 50 or more warnings (use warnings() to see the first 50)
+> temp$method <- "Polynomial"
+> saveRDS(temp, "simulation_Polynomial.rds")
+> 
+> Sys.time()
+[1] "2026-06-01 16:10:28 EDT"
+> toc()
+8302.967 sec elapsed
+> 
+> proc.time()
+    user   system  elapsed 
+ 255.788  234.296 8306.945 
