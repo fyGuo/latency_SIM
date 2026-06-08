@@ -1,0 +1,19 @@
+scenario,method,n_sims,RMSE,MAE
+Unimodal,Knot-search RCspline,300,9.38e-4,7.19e-4
+Unimodal,Term-search RCspline,300,0.00259,0.00203
+Unimodal,Polynomial (df=5),300,8.21e-4,6.29e-4
+Damped exponential,Knot-search RCspline,300,8.96e-4,6.84e-4
+Damped exponential,Term-search RCspline,300,0.00204,0.00162
+Damped exponential,Polynomial (df=5),300,5.99e-4,4.61e-4
+Bimodal 1,Knot-search RCspline,300,0.0022,0.00196
+Bimodal 1,Term-search RCspline,300,0.00146,0.00116
+Bimodal 1,Polynomial (df=5),300,0.00202,0.00179
+Bimodal 2,Knot-search RCspline,300,0.0023,0.00184
+Bimodal 2,Term-search RCspline,300,0.00636,0.00515
+Bimodal 2,Polynomial (df=5),300,0.00384,0.00308
+Null effects,Knot-search RCspline,300,3.16e-4,2.56e-4
+Null effects,Term-search RCspline,300,0.00118,9.02e-4
+Null effects,Polynomial (df=5),300,3.93e-4,3.06e-4
+Constant positive effects,Knot-search RCspline,300,0.00251,0.00209
+Constant positive effects,Term-search RCspline,300,0.00851,0.00676
+Constant positive effects,Polynomial (df=5),300,0.0028,0.00223

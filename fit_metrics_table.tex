@@ -1,0 +1,48 @@
+\documentclass{article}
+\usepackage{booktabs}
+\usepackage[margin=1in]{geometry}
+\begin{document}
+
+\begin{table}[!ht]
+\centering
+\caption{Goodness of fit of the weighted-cumulative-exposure log-hazard-ratio
+  estimators across the six simulation scenarios of Figure~\ref{fig:combined}.
+  Entries are the root-mean-square error (RMSE) and mean absolute error (MAE)
+  of $\hat f(l)$ relative to the true curve over lags $l=0,\dots,15$, averaged
+  over 300 simulations; the smallest value in each row is in bold. All entries
+  are multiplied by $10^{3}$.}
+\label{tab:fit-metrics}
+\begin{tabular}{l cc cc cc}
+\toprule
+& \multicolumn{2}{c}{Knot-search RCspline} & \multicolumn{2}{c}{Term-search RCspline} & \multicolumn{2}{c}{Polynomial (df=5)}\\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+Scenario & RMSE & MAE & RMSE & MAE & RMSE & MAE\\
+\midrule
+Unimodal & 0.94 & 0.72 & 2.59 & 2.03 & \textbf{0.82} & \textbf{0.63}\\
+Damped exponential & 0.90 & 0.68 & 2.04 & 1.62 & \textbf{0.60} & \textbf{0.46}\\
+Bimodal 1 & 2.20 & 1.96 & \textbf{1.46} & \textbf{1.16} & 2.02 & 1.79\\
+Bimodal 2 & \textbf{2.30} & \textbf{1.84} & 6.36 & 5.15 & 3.84 & 3.08\\
+Null effects & \textbf{0.32} & \textbf{0.26} & 1.18 & 0.90 & 0.39 & 0.31\\
+Constant positive effects & \textbf{2.51} & \textbf{2.09} & 8.51 & 6.76 & 2.80 & 2.23\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[!ht]
+\centering
+\caption{Goodness of fit of the term-search RCspline estimator under different
+  candidate knot grids (unimodal scenario, 100 simulations). RMSE and MAE are
+  multiplied by $10^{3}$.}
+\label{tab:fit-tune}
+\begin{tabular}{l cc}
+\toprule
+Candidate knot grid & RMSE & MAE\\
+\midrule
+0 to 15 & 2.80 & 2.20\\
+0, 2, 4, ..., 14 & 1.08 & 0.84\\
+0, 4, 8, 12, 15 & 0.97 & 0.75\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\end{document}
