@@ -19,9 +19,10 @@ load_method <- function(file, scenario_col, method_label,
   dat %>%
     group_by(scenario_val, l) %>%
     summarise(
-      log_HR_true          = mean(log_HR_true),
-      log_HR_estimate_mean = mean(log_HR_estimate),
-      log_HR_estimate_se   = sd(log_HR_estimate),
+      log_HR_true         = mean(log_HR_true),
+      log_HR_estimate_med = median(log_HR_estimate),
+      log_HR_estimate_lo  = quantile(log_HR_estimate, 0.025),
+      log_HR_estimate_hi  = quantile(log_HR_estimate, 0.975),
       .groups = "drop"
     ) %>%
     mutate(method = method_label)
@@ -41,8 +42,8 @@ load_scenario <- function(dir, scenario_col, keep_expr, label,
                 subsample_ids = subsample_ids)
   ) %>%
     filter(!!keep_expr) %>%
-    transmute(l, log_HR_true, log_HR_estimate_mean, log_HR_estimate_se,
-              method, scenario_label = label)
+    transmute(l, log_HR_true, log_HR_estimate_med, log_HR_estimate_lo,
+              log_HR_estimate_hi, method, scenario_label = label)
 }
 
 # ── raw loader (for variability figures) ─────────────────────────────────────
@@ -153,9 +154,10 @@ all_data <- bind_rows(d1, d2, d3, d4, d5, d6) %>%
 true_rows <- all_data %>%
   distinct(scenario_label, l, log_HR_true) %>%
   mutate(
-    method               = "True latency-risk curve",
-    log_HR_estimate_mean = log_HR_true,
-    log_HR_estimate_se   = 0
+    method              = "True latency-risk curve",
+    log_HR_estimate_med = log_HR_true,
+    log_HR_estimate_lo  = log_HR_true,
+    log_HR_estimate_hi  = log_HR_true
   )
 
 plot_data <- bind_rows(all_data, true_rows) %>%
@@ -182,15 +184,14 @@ SHP_VALUES <- c(32L, 16L, 17L, 15L)
 
 combined <- ggplot(plot_data, aes(
   x        = l,
-  y        = log_HR_estimate_mean,
+  y        = log_HR_estimate_med,
   colour   = method,
   linetype = method,
   shape    = method,
   fill     = method
 )) +
   geom_ribbon(
-    aes(ymin = log_HR_estimate_mean - 1.96 * log_HR_estimate_se,
-        ymax = log_HR_estimate_mean + 1.96 * log_HR_estimate_se),
+    aes(ymin = log_HR_estimate_lo, ymax = log_HR_estimate_hi),
     alpha = 0.15, colour = NA, show.legend = FALSE
   ) +
   geom_line(linewidth = 0.55) +
@@ -225,15 +226,14 @@ for (i in seq_len(nrow(METHOD_INFO))) {
 
   p <- ggplot(pd_m, aes(
     x        = l,
-    y        = log_HR_estimate_mean,
+    y        = log_HR_estimate_med,
     colour   = method,
     linetype = method,
     shape    = method,
     fill     = method
   )) +
     geom_ribbon(
-      aes(ymin = log_HR_estimate_mean - 1.96 * log_HR_estimate_se,
-          ymax = log_HR_estimate_mean + 1.96 * log_HR_estimate_se),
+      aes(ymin = log_HR_estimate_lo, ymax = log_HR_estimate_hi),
       alpha = 0.15, colour = NA, show.legend = FALSE
     ) +
     geom_line(linewidth = 0.55) +

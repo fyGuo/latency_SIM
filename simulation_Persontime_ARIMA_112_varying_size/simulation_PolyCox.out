@@ -1,0 +1,48 @@
+> # please change the following directory to your own directory
+> # setwd("/n/home00/fyguo/proj_spline/simulation_PersonTime")
+> setwd("~/proj_spline/simulation_Persontime_ARIMA_112_varying_size")
+> 
+> source("simulate_personetime.R")
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.4     ✔ tidyr     1.3.1
+✔ purrr     1.0.2     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+> source("simulation_output.R")
+
+Attaching package: ‘future’
+
+The following object is masked from ‘package:survival’:
+
+    cluster
+
+> 
+> library(future)
+> library(furrr)
+> library(LatencyA)
+> 
+> # simulate for polynomials with knot = 10, varying sample size and degree
+> temp <- data.frame()
+> 
+> for (sample_size in c(1000, 3000, 5000)){
++   for (degree in c(3, 4, 5)) {
++     result <- simulation_output(sample_size = sample_size, knot = 10, degree = degree, method = "Polynomial")
++     result$sample_size <- sample_size
++     result$degree <- degree
++     temp <- rbind(temp, result)
++   }
++ }
+> temp$method <- "Polynomial"
+> saveRDS(temp, "simulation_Polynomial.rds")
+> 
+> Sys.time()
+[1] "2026-06-09 02:19:43 EDT"
+> 
+> proc.time()
+      user     system    elapsed 
+483116.145   3683.072  17171.185 

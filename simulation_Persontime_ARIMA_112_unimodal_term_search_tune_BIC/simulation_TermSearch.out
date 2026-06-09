@@ -1,0 +1,58 @@
+> setwd(tryCatch(
++   dirname(rstudioapi::getSourceEditorContext()$path),
++   error = function(e) getwd()
++ ))
+> 
+> source("simulate_personetime.R")
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.4     ✔ tidyr     1.3.1
+✔ purrr     1.0.2     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+> source("simulation_output.R")
+
+Attaching package: ‘future’
+
+The following object is masked from ‘package:survival’:
+
+    cluster
+
+> 
+> library(future)
+> library(furrr)
+> library(LatencyA)
+> 
+> # Three term_knots scenarios to compare:
+> #   dense  : every lag from 0 to 15  (16 terms)
+> #   even   : every other lag          (8 terms)
+> #   sparse : 5 evenly spaced lags     (5 terms)
+> knots_scenarios <- list(
++   list(term_knots = 0:15,                         label = "16 terms"),
++   list(term_knots = c(0, 2, 4, 6, 8, 10, 12, 14), label = "8 terms"),
++   list(term_knots = c(0, 4, 8, 12, 15),            label = "5 terms")
++ )
+> 
+> temp <- data.frame()
+> 
+> for (s in knots_scenarios) {
++   result <- simulation_output(sample_size = 5000, knot = 10,
++                               term_knots  = s$term_knots)
++   result$knot             <- 10
++   result$term_knots_label <- s$label
++   temp <- rbind(temp, result)
++ }
+> 
+> temp$method <- "TermSearch"
+> saveRDS(temp, "simulation_TermSearch.rds")
+> 
+> Sys.time()
+[1] "2026-06-08 21:13:30 EDT"
+> 
+> proc.time()
+      user     system    elapsed 
+385079.389   1070.653  13360.379 

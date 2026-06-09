@@ -1,4 +1,7 @@
-scenario,n_sims,RMSE,MAE
-0 to 15,100,0.0028,0.0022
-"0, 2, 4, ..., 14",100,0.00108,8.43e-4
-"0, 4, 8, 12, 15",100,9.73e-4,7.51e-4
+criterion,scenario,n_sims,RMSE,MAE
+AIC,16 terms,300,0.0027,0.00211
+AIC,5 terms,300,9.87e-4,7.64e-4
+AIC,8 terms,300,0.00111,8.73e-4
+BIC,16 terms,300,0.0014,0.00104
+BIC,5 terms,300,0.00126,0.00101
+BIC,8 terms,300,0.00109,8.58e-4

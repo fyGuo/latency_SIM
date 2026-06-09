@@ -31,16 +31,20 @@ Constant positive effects & \textbf{2.51} & \textbf{2.09} & 8.51 & 6.76 & 2.80 &
 \begin{table}[!ht]
 \centering
 \caption{Goodness of fit of the term-search RCspline estimator under different
-  candidate knot grids (unimodal scenario, 100 simulations). RMSE and MAE are
-  multiplied by $10^{3}$.}
+  candidate knot grids and model-selection criteria (unimodal scenario, 300
+  simulations). Columns compare the AIC and BIC selection criteria used inside
+  the term search; for each metric the smaller of the two criteria is in bold.
+  RMSE and MAE are multiplied by $10^{3}$.}
 \label{tab:fit-tune}
-\begin{tabular}{l cc}
+\begin{tabular}{l cc cc}
 \toprule
-Candidate knot grid & RMSE & MAE\\
+& \multicolumn{2}{c}{AIC} & \multicolumn{2}{c}{BIC}\\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Candidate knot grid & RMSE & MAE & RMSE & MAE\\
 \midrule
-0 to 15 & 2.80 & 2.20\\
-0, 2, 4, ..., 14 & 1.08 & 0.84\\
-0, 4, 8, 12, 15 & 0.97 & 0.75\\
+5 knots & \textbf{0.99} & \textbf{0.76} & 1.26 & 1.01\\
+8 knots & 1.11 & 0.87 & \textbf{1.09} & \textbf{0.86}\\
+16 knots & 2.70 & 2.11 & \textbf{1.40} & \textbf{1.04}\\
 \bottomrule
 \end{tabular}
 \end{table}

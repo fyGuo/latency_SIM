@@ -52,9 +52,10 @@ summarise_results <- function(path, method_label) {
 
   res %>%
     group_by(B, latency, l) %>%
-    summarise(log_HR_true          = mean(log_HR_true),
-              log_HR_estimate_mean = mean(log_HR_estimate),
-              log_HR_estimate_se   = sd(log_HR_estimate),
+    summarise(log_HR_true         = mean(log_HR_true),
+              log_HR_estimate_med = median(log_HR_estimate),
+              log_HR_estimate_lo  = quantile(log_HR_estimate, 0.025),
+              log_HR_estimate_hi  = quantile(log_HR_estimate, 0.975),
               .groups = "drop") %>%
     filter(latency != 25) %>%
     mutate(method = method_label)
@@ -95,11 +96,11 @@ make_panel <- function(method_label) {
               linewidth   = 0.7,
               inherit.aes = FALSE) +
     geom_ribbon(aes(x = l,
-                    ymax  = log_HR_estimate_mean + 1.96 * log_HR_estimate_se,
-                    ymin  = log_HR_estimate_mean - 1.96 * log_HR_estimate_se,
+                    ymax  = log_HR_estimate_hi,
+                    ymin  = log_HR_estimate_lo,
                     color = latency, fill = latency),
                 alpha = 0.3) +
-    geom_line(aes(x = l, y = log_HR_estimate_mean,
+    geom_line(aes(x = l, y = log_HR_estimate_med,
                   color = latency, group = latency)) +
     facet_grid(case ~ latency, scales = "free_y",
                labeller = labeller(latency = label_parsed, .default = label_value)) +

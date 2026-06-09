@@ -13,7 +13,7 @@ simulation_output <- function(sample_size, A = 0.3, B = -1,
                               method = c("Polynomial", "Spline",
                                          "GridSearchKnot", "TermSearch"),
                               TermSearch_knots = 0:(latency - 1)) {
-  plan("multicore")
+  plan(if (Sys.info()[["sysname"]] == "Darwin") "multisession" else "multicore")
   future_map_dfr(1:300, .f = function(sim_id){
     sim_data <- generate_data(sample_size, beta = 0.01, rho = 0.3, lambda = 0.5,
                               A = A, B = B,

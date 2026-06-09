@@ -21,7 +21,7 @@ simulation_output <- function(sample_size, beta = 0.01, rho = 0.3, lambda = 0.5,
                                          "Spline",
                                          "GridSearchKnot",
                                          "TermSearch")) {
-  plan("multicore")
+  plan(if (Sys.info()[["sysname"]] == "Darwin") "multisession" else "multicore")
   future_map_dfr(1:500, .f = function(sim_id){
     # Generate data
     sim_data <- generate_data(sample_size, beta = 0.01, rho = 0.3, lambda = 0.5,  

@@ -86,17 +86,23 @@ write_csv(main_tbl, "fit_metrics_main.csv")
 cat("== Goodness-of-fit (combined-figure scenarios) ==\n")
 print(as.data.frame(main_tbl), row.names = FALSE)
 
-# ── Term-Search tuning study ──────────────────────────────────────────────────
-tune_dir <- file.path(base, "simulation_Persontime_ARIMA_112_unimodal_term_search_tune")
-tune_raw <- readRDS(file.path(tune_dir, "simulation_TermSearch.rds")) %>%
-  transmute(scenario = term_knots_label, method = "Term-search RCspline",
-            sim_id, l, log_HR_true, log_HR_estimate)
+# ── Term-Search tuning study (AIC vs BIC selection criterion) ─────────────────
+tune_dirs <- c(
+  AIC = "simulation_Persontime_ARIMA_112_unimodal_term_search_tune",
+  BIC = "simulation_Persontime_ARIMA_112_unimodal_term_search_tune_BIC"
+)
+
+tune_raw <- imap_dfr(tune_dirs, function(dir, crit)
+  readRDS(file.path(base, dir, "simulation_TermSearch.rds")) %>%
+    transmute(criterion = crit, scenario = term_knots_label,
+              method = "Term-search RCspline",
+              sim_id, l, log_HR_true, log_HR_estimate))
 
 tune_tbl <- tune_raw %>%
   mutate(e = log_HR_true - log_HR_estimate) %>%
-  group_by(scenario, sim_id) %>%
+  group_by(criterion, scenario, sim_id) %>%
   summarise(MSE = mean(e^2), MAE = mean(abs(e)), .groups = "drop") %>%
-  group_by(scenario) %>%
+  group_by(criterion, scenario) %>%
   summarise(n_sims = n(), RMSE = mean(sqrt(MSE)), MAE = mean(MAE), .groups = "drop") %>%
   mutate(across(c(RMSE, MAE), ~ signif(.x, 3)))
 
@@ -134,11 +140,33 @@ for (i in seq_len(nrow(w2))) {
                           as.character(row$scenario), paste(cells, collapse = " & ")))
 }
 
-tune_body <- tune_tbl %>%
-  mutate(RMSE = sprintf("%.2f", RMSE * SCALE),
-         MAE  = sprintf("%.2f", MAE * SCALE)) %>%
-  transmute(line = sprintf("%s & %s & %s\\\\", scenario, RMSE, MAE)) %>%
-  pull(line)
+# Term-search tuning table: rows = candidate knot grid, columns grouped by the
+# AIC vs BIC selection criterion. For each metric the smaller of the two criteria
+# is bolded so the impact of the criterion is easy to read off.
+KNOT_ORDER <- c("5 knots", "8 knots", "16 knots")
+CRIT_ORDER <- c("AIC", "BIC")
+
+tw <- tune_tbl %>%
+  mutate(grid = factor(str_replace(scenario, "terms", "knots"), levels = KNOT_ORDER),
+         criterion = factor(criterion, levels = CRIT_ORDER),
+         RMSE = RMSE * SCALE, MAE = MAE * SCALE) %>%
+  arrange(grid, criterion)
+
+fmt_pair <- function(vals) {                   # bold the smaller of AIC/BIC
+  out <- sprintf("%.2f", vals)
+  out[which.min(vals)] <- paste0("\\textbf{", out[which.min(vals)], "}")
+  out
+}
+
+tune_body <- character(0)
+for (g in KNOT_ORDER) {
+  rg   <- tw %>% filter(grid == g) %>% arrange(criterion)
+  rmse <- fmt_pair(rg$RMSE)
+  mae  <- fmt_pair(rg$MAE)
+  # column order: AIC RMSE, AIC MAE, BIC RMSE, BIC MAE
+  cells <- c(rmse[1], mae[1], rmse[2], mae[2])
+  tune_body <- c(tune_body, sprintf("%s & %s\\\\", g, paste(cells, collapse = " & ")))
+}
 
 tex <- c(
   "\\documentclass{article}",
@@ -170,12 +198,16 @@ tex <- c(
   "\\begin{table}[!ht]",
   "\\centering",
   "\\caption{Goodness of fit of the term-search RCspline estimator under different",
-  "  candidate knot grids (unimodal scenario, 100 simulations). RMSE and MAE are",
-  "  multiplied by $10^{3}$.}",
+  "  candidate knot grids and model-selection criteria (unimodal scenario, 300",
+  "  simulations). Columns compare the AIC and BIC selection criteria used inside",
+  "  the term search; for each metric the smaller of the two criteria is in bold.",
+  "  RMSE and MAE are multiplied by $10^{3}$.}",
   "\\label{tab:fit-tune}",
-  "\\begin{tabular}{l cc}",
+  "\\begin{tabular}{l cc cc}",
   "\\toprule",
-  "Candidate knot grid & RMSE & MAE\\\\",
+  "& \\multicolumn{2}{c}{AIC} & \\multicolumn{2}{c}{BIC}\\\\",
+  "\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}",
+  "Candidate knot grid & RMSE & MAE & RMSE & MAE\\\\",
   "\\midrule",
   tune_body,
   "\\bottomrule",
