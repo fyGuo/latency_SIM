@@ -1,6 +1,0 @@
-> # please change the following directory to your own directory
-> # setwd("/n/home00/fyguo/proj_spline/simulation_PersonTime")
-> setwd("~/proj_spline/simulation_Persontime_ARIMA_112")
-Error in setwd("~/proj_spline/simulation_Persontime_ARIMA_112") : 
-  cannot change working directory
-Execution halted

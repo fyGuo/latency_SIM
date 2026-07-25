@@ -1,1 +1,21 @@
+# OS / editor cruft
 .DS_Store
+.Rhistory
+.Rproj.user/
+.Rproj.user
+*.Rproj
+.claude/
+
+# Cluster job logs
+*.out
+*.err
+myoutput_*
+myerrors_*
+
+# Simulation result objects (regenerate with the simulation scripts)
+*.rds
+
+# LaTeX build artifacts
+*.aux
+*.log
+Rplots.pdf
