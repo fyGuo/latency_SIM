@@ -1,0 +1,35 @@
+\documentclass{article}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage[margin=1in]{geometry}
+\sisetup{round-mode=places, round-precision=3, table-format=1.3}
+
+\begin{document}
+
+\begin{table}[ht]
+\centering
+\caption{Permutation test for constant weights across true weighting shapes.
+The null hypothesis is that the latency weight is constant across lags
+($\alpha(0)=\cdots=\alpha(\tau)$). Working model: knot-search restricted cubic
+spline selected by AIC; for each replicate the observed AIC is compared with the
+null distribution from $B=300$ permutations of the lag columns, and $H_0$ is
+rejected when the observed AIC falls below the lower $\alpha=0.05$ percentile of
+that distribution. The rejection rate is taken over $300$ simulated data sets
+($n=5000$, $\gamma=0.1$, $\lambda_0=0.5$, true latency $16$); for the constant
+shapes it estimates the type-I error and for the lag-varying shapes the power.}
+\label{tab:permtest}
+\begin{tabular}{l l c S}
+\toprule
+True weight shape & $H_0$ status & Replicates & {Rejection rate} \\
+\midrule
+Unimodal & False & 300 & 1.000 \\
+Damped exponential & False & 300 & 1.000 \\
+Bimodal 1 & False & 300 & 1.000 \\
+Bimodal 2 & False & 300 & 1.000 \\
+Null effects & True & 300 & 0.010 \\
+Constant positive effects & True & 300 & 0.010 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\end{document}

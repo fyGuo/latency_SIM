@@ -10,6 +10,11 @@ library(future)
 library(furrr)
 library(LatencyA)
 
+# Parallel backend: set once here at top level. Calling plan() inside a
+# function body breaks future's environment walk (NULL env in the chain).
+parallel_backend <- if (Sys.info()[["sysname"]] == "Darwin") "multisession" else "multicore"
+plan(parallel_backend)
+
 # Four underlying curve shapes x polynomial degrees 3-5
 curve_scenarios <- list(
   list(curve = "unimodal", A = 0.3, B = 0.4,  knot = 10, label = "Unimodal"),

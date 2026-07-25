@@ -308,13 +308,11 @@ for (i in seq_len(nrow(METHOD_INFO))) {
     theme_bw(base_size = 9) +
     labs(
       x       = expression(Time ~ lag ~ (l)),
-      y       = expression(logHR[p](l)),
-      caption = "Dashed line: true latency-risk curve"
+      y       = expression(logHR[p](l))
     ) +
     theme(
       strip.background = element_rect(fill = "grey92"),
-      strip.text       = element_text(size = 9, face = "bold"),
-      plot.caption     = element_text(hjust = 0)
+      strip.text       = element_text(size = 9, face = "bold")
     )
 
   var_plots[[i]] <- v
@@ -328,16 +326,17 @@ for (i in seq_len(nrow(METHOD_INFO))) {
 #          [Image #3: term variability   ]  [Image #4: poly variability]
 big_figure <- (combined | var_plots[[1]]) /
               (var_plots[[2]] | var_plots[[3]]) +
+  plot_layout(guides = "collect") +
   plot_annotation(tag_levels = "A") &
   theme(
-    text          = element_text(size = 14),
-    axis.title    = element_text(size = 13),
-    axis.text     = element_text(size = 11),
-    strip.text    = element_text(size = 13, face = "bold"),
-    legend.text   = element_text(size = 11),
-    legend.title  = element_text(size = 13, face = "bold"),
-    plot.tag      = element_text(size = 16, face = "bold"),
-    plot.caption  = element_text(size = 10)
+    text            = element_text(size = 14),
+    axis.title      = element_text(size = 13),
+    axis.text       = element_text(size = 11),
+    strip.text      = element_text(size = 13, face = "bold"),
+    legend.text     = element_text(size = 11),
+    legend.title    = element_text(size = 13, face = "bold"),
+    legend.position = "bottom",
+    plot.tag        = element_text(size = 16, face = "bold")
   )
 
 ggsave("figure_2x2.png", big_figure,

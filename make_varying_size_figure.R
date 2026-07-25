@@ -14,8 +14,29 @@ library(patchwork)
 dir <- "simulation_Persontime_ARIMA_112_varying_size"
 
 SIZE_ORDER <- c(300, 500, 1000, 3000, 5000)
-size_label <- function(n) factor(paste0("n = ", n),
-                                 levels = paste0("n = ", SIZE_ORDER))
+
+# Average number of uncensored events per sample size, pooled over the three
+# methods. n_events is constant within a replicate, so we keep one value per
+# (method, sample_size, sim_id) before averaging.
+events_tbl <- bind_rows(
+  readRDS(file.path(dir, "simulation_KnotGridSearch.rds")) %>%
+    transmute(method = "Knot", sample_size, sim_id, n_events),
+  readRDS(file.path(dir, "simulation_TermSearch.rds")) %>%
+    transmute(method = "Term", sample_size, sim_id, n_events),
+  readRDS(file.path(dir, "simulation_Polynomial.rds")) %>%
+    filter(degree == 5) %>%
+    transmute(method = "Poly", sample_size, sim_id, n_events)
+) %>%
+  distinct(method, sample_size, sim_id, n_events) %>%
+  group_by(sample_size) %>%
+  summarise(avg_events = mean(n_events, na.rm = TRUE), .groups = "drop")
+
+# Facet labels carry both the sample size and the (pooled) average event count.
+avg_events  <- setNames(events_tbl$avg_events, events_tbl$sample_size)
+SIZE_LABELS <- setNames(
+  sprintf("n = %d\nevents ≈ %d", SIZE_ORDER, round(avg_events[as.character(SIZE_ORDER)])),
+  as.character(SIZE_ORDER))
+size_label <- function(n) factor(SIZE_LABELS[as.character(n)], levels = SIZE_LABELS)
 
 # Per-(sample_size, lag) summary across replicates for one method.
 load_method <- function(file, method_label, degree_filter = NULL) {

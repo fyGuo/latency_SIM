@@ -19,34 +19,55 @@ full_true <- bind_rows(
              y = as.numeric(gamma * alpha_function(0:15, A = 0.3, B =  1)))
 )
 
-# ── Load and summarise simulation results ─────────────────────────────────────
-result_KnotGridSearch <- readRDS("simulation_KnotGridSearch.rds") %>%
-  group_by(B, latency, l) %>%
-  summarise(log_HR_true          = mean(log_HR_true),
-            log_HR_estimate_mean = mean(log_HR_estimate),
-            log_HR_estimate_se   = sd(log_HR_estimate),
-            .groups = "drop") %>%
-  filter(latency != 25)
-result_KnotGridSearch$method <- "Knot-search"
+# ── Failure-aware loader ──────────────────────────────────────────────────────
+# Some fits fail for certain settings (e.g. CoxPoly at long misspecified
+# latencies). A replicate is counted as FAILED when all of its lag estimates are
+# NA; failed replicates are dropped and every summary uses na.rm = TRUE, so the
+# remaining successful replicates are used. The per-setting failure counts are
+# accumulated in `failure_log` and reported below.
+failure_log <- list()
 
-result_TermSearch <- readRDS("simulation_TermSearch.rds") %>%
-  group_by(B, latency, l) %>%
-  summarise(log_HR_true          = mean(log_HR_true),
-            log_HR_estimate_mean = mean(log_HR_estimate),
-            log_HR_estimate_se   = sd(log_HR_estimate),
-            .groups = "drop") %>%
-  filter(latency != 25)
-result_TermSearch$method <- "Term-Search"
+load_method <- function(file, method_label, degree_filter = NULL) {
+  dat <- readRDS(file)
+  if (!is.null(degree_filter)) dat <- filter(dat, degree == degree_filter)
 
-result_Polynomial <- readRDS("simulation_Polynomial.rds") %>%
-  filter(degree == 5) %>%
-  group_by(B, latency, l) %>%
-  summarise(log_HR_true          = mean(log_HR_true),
-            log_HR_estimate_mean = mean(log_HR_estimate),
-            log_HR_estimate_se   = sd(log_HR_estimate),
-            .groups = "drop") %>%
+  rep_status <- dat %>%
+    group_by(B, latency, sim_id) %>%
+    summarise(failed = all(is.na(log_HR_estimate)), .groups = "drop")
+
+  failure_log[[method_label]] <<- rep_status %>%
+    group_by(B, latency) %>%
+    summarise(n_rep = n(), n_failed = sum(failed),
+              .groups = "drop") %>%
+    mutate(method = method_label)
+
+  dat %>%
+    semi_join(filter(rep_status, !failed), by = c("B", "latency", "sim_id")) %>%
+    group_by(B, latency, l) %>%
+    summarise(log_HR_true          = mean(log_HR_true,     na.rm = TRUE),
+              log_HR_estimate_mean = mean(log_HR_estimate, na.rm = TRUE),
+              log_HR_estimate_se   = sd(log_HR_estimate,   na.rm = TRUE),
+              n_used               = n_distinct(sim_id),
+              .groups = "drop") %>%
+    mutate(method = method_label)
+}
+
+result_KnotGridSearch <- load_method("simulation_KnotGridSearch.rds", "Knot-search") %>%
   filter(latency != 25)
-result_Polynomial$method <- "Polynomial (df=5)"
+result_TermSearch <- load_method("simulation_TermSearch.rds", "Term-Search") %>%
+  filter(latency != 25)
+result_Polynomial <- load_method("simulation_Polynomial.rds", "Polynomial (df=5)",
+                                 degree_filter = 5) %>%
+  filter(latency != 25)
+
+# ── Report how many simulations failed ────────────────────────────────────────
+failure_report <- bind_rows(failure_log) %>%
+  arrange(method, B, latency)
+write_csv(failure_report, "failure_report.csv")
+cat("== Failed simulations per setting (failed = all lag estimates NA) ==\n")
+print(as.data.frame(failure_report), row.names = FALSE)
+cat(sprintf("\nTotal failed replicates: %d of %d\n",
+            sum(failure_report$n_failed), sum(failure_report$n_rep)))
 
 # ── Combine and create facet labels ──────────────────────────────────────────
 temp <- bind_rows(result_KnotGridSearch, result_TermSearch, result_Polynomial) %>%

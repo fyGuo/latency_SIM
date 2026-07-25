@@ -119,13 +119,8 @@ qq_panels   <- map(target_lags, make_lag_qq)
 # ── Two separate figures: histograms and matching Q-Q plots ───────────────────
 panel_hist <- ggarrange(plotlist = hist_panels, ncol = length(hist_panels), nrow = 1,
                         labels = LETTERS[seq_along(hist_panels)])
-panel_hist <- annotate_figure(
-  panel_hist,
-  top = text_grob(
-    "Normality of WCE log-HR estimators: histogram + red KDE vs black-dotted N(0,1) (standardised within dataset x method x group)",
-    size = 11))
 ggsave("figure_normality_hist.png", plot = panel_hist,
-       units = "cm", width = 60, height = 26, dpi = 300)
+       units = "cm", width = 60, height = 26, dpi = 300, bg = "white")
 cat("Saved figure_normality_hist.png\n")
 
 panel_qq <- ggarrange(plotlist = qq_panels, ncol = length(qq_panels), nrow = 1,

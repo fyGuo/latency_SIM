@@ -19,7 +19,7 @@ simulation_output <- function(sample_size, beta = 0.01, rho = 0.3, lambda = 0.5,
                                          "Spline",
                                          "GridSearchKnot",
                                          "TermSearch")) {
-  plan(if (Sys.info()[["sysname"]] == "Darwin") "multisession" else "multicore")
+  plan("multicore")
   future_map_dfr(1:300, .f = function(sim_id){
     # The true curve is deterministic, so we can always report it even if a fit
     # fails (e.g. with small samples where a single replicate may not converge).

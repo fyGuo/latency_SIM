@@ -1,6 +1,16 @@
-> # please change the following directory to your own directory
-> # setwd("/n/home00/fyguo/proj_spline/simulation_PersonTime")
-> setwd("~/proj_spline/simulation_Persontime_ARIMA_112_varying_size")
+> # ── Self-locating working directory ───────────────────────────────────────────
+> # Set the working directory to the folder this script lives in, so the project
+> # can be copied to another machine without editing any path. Works whether the
+> # script is run with Rscript, R CMD BATCH, or "Source"d in RStudio.
+> local({
++   a <- commandArgs(trailingOnly = FALSE)
++   f <- sub("^--file=", "", grep("^--file=", a, value = TRUE))               # Rscript
++   if (!length(f)) { i <- which(a == "-f"); if (length(i)) f <- a[i + 1L] }  # R CMD BATCH
++   if (!length(f) && requireNamespace("rstudioapi", quietly = TRUE) &&
++       rstudioapi::isAvailable())
++     f <- rstudioapi::getSourceEditorContext()$path                          # RStudio
++   if (length(f) && nzchar(f)) setwd(dirname(normalizePath(f)))
++ })
 > 
 > source("simulate_personetime.R")
 ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
@@ -29,20 +39,28 @@ The following object is masked from ‘package:survival’:
 > # simulate for polynomials with knot = 10, varying sample size and degree
 > temp <- data.frame()
 > 
-> for (sample_size in c(1000, 3000, 5000)){
-+   for (degree in c(3, 4, 5)) {
+> for (sample_size in c(300, 500, 1000, 3000, 5000)){
++   for (degree in 5) {
 +     result <- simulation_output(sample_size = sample_size, knot = 10, degree = degree, method = "Polynomial")
 +     result$sample_size <- sample_size
 +     result$degree <- degree
++     cat(sprintf("sample_size = %d, degree = %d: average number of events = %.1f\n",
++                 sample_size, degree, mean(result$n_events, na.rm = TRUE)))
 +     temp <- rbind(temp, result)
 +   }
++   sprintf("Finished sample size = %d\n", sample_size)
 + }
+sample_size = 300, degree = 5: average number of events = 83.5
+sample_size = 500, degree = 5: average number of events = 138.2
+sample_size = 1000, degree = 5: average number of events = 275.0
+sample_size = 3000, degree = 5: average number of events = 826.6
+sample_size = 5000, degree = 5: average number of events = 1377.9
 > temp$method <- "Polynomial"
 > saveRDS(temp, "simulation_Polynomial.rds")
 > 
 > Sys.time()
-[1] "2026-06-09 02:19:43 EDT"
+[1] "2026-06-09 15:04:52 EDT"
 > 
 > proc.time()
       user     system    elapsed 
-483116.145   3683.072  17171.185 
+147069.687   1041.187   5249.403 

@@ -1,0 +1,37 @@
+B,latency,n_rep,n_failed,method
+-1,10,300,0,Knot-search
+-1,13,300,0,Knot-search
+-1,16,300,0,Knot-search
+-1,19,300,0,Knot-search
+-1,22,300,0,Knot-search
+-1,25,300,0,Knot-search
+1,10,300,0,Knot-search
+1,13,300,0,Knot-search
+1,16,300,0,Knot-search
+1,19,300,0,Knot-search
+1,22,300,0,Knot-search
+1,25,300,0,Knot-search
+-1,10,300,0,Polynomial (df=5)
+-1,13,300,0,Polynomial (df=5)
+-1,16,300,0,Polynomial (df=5)
+-1,19,300,0,Polynomial (df=5)
+-1,22,300,0,Polynomial (df=5)
+-1,25,300,0,Polynomial (df=5)
+1,10,300,0,Polynomial (df=5)
+1,13,300,0,Polynomial (df=5)
+1,16,300,0,Polynomial (df=5)
+1,19,300,0,Polynomial (df=5)
+1,22,300,0,Polynomial (df=5)
+1,25,300,0,Polynomial (df=5)
+-1,10,300,0,Term-Search
+-1,13,300,0,Term-Search
+-1,16,300,0,Term-Search
+-1,19,300,0,Term-Search
+-1,22,300,0,Term-Search
+-1,25,300,0,Term-Search
+1,10,300,0,Term-Search
+1,13,300,0,Term-Search
+1,16,300,0,Term-Search
+1,19,300,0,Term-Search
+1,22,300,0,Term-Search
+1,25,300,0,Term-Search

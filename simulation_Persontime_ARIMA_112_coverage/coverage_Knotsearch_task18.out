@@ -1,0 +1,110 @@
+> # ── Coverage simulation driver (one chunk) ────────────────────────────────────
+> # Runs the bootstrap-percentile coverage study for ONE (method, scenario, part).
+> # The full study is 2 methods x 6 weighting shapes x 6 parts of 50 replicates
+> # (300 replicates per method x shape), each part written to its own
+> # coverage_<method>_<scenario>_part<k>.rds so a crashed job only loses its part.
+> #
+> # Selection of (method, scenario, part):
+> #   * method   : METHOD env var ("Knotsearch" or "Termsearch").
+> #   * On the cluster a single sbatch array of 1..(6 shapes x 6 parts) = 1..36 is
+> #     mapped here:  scenario = (idx-1) %/% n_parts + 1,  part = (idx-1) %% n_parts + 1.
+> #   * Locally, set SCENARIO and PART env vars instead (see run_sim.sh).
+> 
+> # ── Self-locating working directory ───────────────────────────────────────────
+> local({
++   a <- commandArgs(trailingOnly = FALSE)
++   f <- sub("^--file=", "", grep("^--file=", a, value = TRUE))               # Rscript
++   if (!length(f)) { i <- which(a == "-f"); if (length(i)) f <- a[i + 1L] }  # R CMD BATCH
++   if (!length(f) && requireNamespace("rstudioapi", quietly = TRUE) &&
++       rstudioapi::isAvailable())
++     f <- rstudioapi::getSourceEditorContext()$path                          # RStudio
++   if (length(f) && nzchar(f)) setwd(dirname(normalizePath(f)))
++ })
+> source("coverage_output.R")     # also sources simulate_personetime.R + weight_curves.R
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.6.0
+✔ ggplot2   4.0.3     ✔ tibble    3.2.1
+✔ lubridate 1.9.4     ✔ tidyr     1.3.1
+✔ purrr     1.2.2     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+
+Attaching package: ‘future’
+
+The following object is masked from ‘package:survival’:
+
+    cluster
+
+> 
+> library(future)
+> library(furrr)
+> library(LatencyA)
+> 
+> # ── Method, scenario, part selection ──────────────────────────────────────────
+> method <- Sys.getenv("METHOD", "Knotsearch")
+> stopifnot(method %in% c("Knotsearch", "Termsearch"))
+> 
+> scenarios     <- names(WEIGHT_CURVES)    # 6 shapes, fixed order from weight_curves.R
+> n_parts       <- 6
+> sims_per_part <- 50
+> 
+> task <- Sys.getenv("SLURM_ARRAY_TASK_ID", "")
+> if (nzchar(task)) {                       # cluster: array index 1..(n_scen*n_parts)
++   idx <- as.integer(task)
++   stopifnot(idx >= 1, idx <= length(scenarios) * n_parts)
++   scen_i <- (idx - 1L) %/% n_parts + 1L
++   part   <- (idx - 1L) %%  n_parts + 1L
++ } else {                                  # local: SCENARIO + PART env vars
++   scenario <- Sys.getenv("SCENARIO", scenarios[1])
++   scen_i   <- match(scenario, scenarios)
++   part     <- as.integer(Sys.getenv("PART", "1"))
++   stopifnot(!is.na(scen_i), part >= 1, part <= n_parts)
++ }
+> scenario <- scenarios[scen_i]
+> method_i <- match(method, c("Knotsearch", "Termsearch"))
+> 
+> # Distinct RNG stream per (method, scenario, part).
+> set.seed(10000L * method_i + 1000L * scen_i + part)
+> 
+> # 95% bootstrap-percentile coverage at lags 1, 8, 15 under the true weighting
+> # curve `scenario` (n = 5000, gamma = 0.1, lambda_0 = 0.5, true latency = 16).
+> result <- coverage_output(method      = method,
++                           weights     = WEIGHT_CURVES[[scenario]],
++                           scenario    = scenario,
++                           sample_size = 5000,
++                           gamma       = 0.1,
++                           lambda_0    = 0.5,
++                           intercept   = 0,
++                           lags        = c(1, 8, 15),
++                           n_sims      = sims_per_part,
++                           boot_iter   = 300,
++                           parallel    = TRUE)
+[Knotsearch/bimodal_neg] finished 10 / 50 replicates
+[Knotsearch/bimodal_neg] finished 20 / 50 replicates
+[Knotsearch/bimodal_neg] finished 30 / 50 replicates
+[Knotsearch/bimodal_neg] finished 40 / 50 replicates
+[Knotsearch/bimodal_neg] finished 50 / 50 replicates
+> 
+> # Make sim_id unique across parts (part 1 -> 1:50, part 2 -> 51:100, ...).
+> result$sim_id <- result$sim_id + (part - 1L) * sims_per_part
+> 
+> saveRDS(result, sprintf("coverage_%s_%s_part%d.rds", method, scenario, part))
+> 
+> cat(sprintf("== %s / %s part %d / %d: 95%% percentile-interval coverage by lag ==\n",
++             method, scenario, part, n_parts))
+== Knotsearch / bimodal_neg part 6 / 6: 95% percentile-interval coverage by lag ==
+> print(aggregate(covered ~ lag, result, function(x) mean(x, na.rm = TRUE)))
+  lag covered
+1   1    0.42
+2   8    0.00
+3  15    0.90
+> 
+> Sys.time()
+[1] "2026-06-14 19:51:36 EDT"
+> 
+> proc.time()
+      user     system    elapsed 
+294427.406   2085.780   6003.882 

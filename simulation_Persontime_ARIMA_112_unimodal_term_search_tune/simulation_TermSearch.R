@@ -10,6 +10,11 @@ library(future)
 library(furrr)
 library(LatencyA)
 
+# Parallel backend: set once here at top level. Calling plan() inside a
+# function body breaks future's environment walk (NULL env in the chain).
+parallel_backend <- if (Sys.info()[["sysname"]] == "Darwin") "multisession" else "multicore"
+plan(parallel_backend)
+
 # Three term_knots scenarios to compare:
 #   dense  : every lag from 0 to 15  (16 terms)
 #   even   : every other lag          (8 terms)

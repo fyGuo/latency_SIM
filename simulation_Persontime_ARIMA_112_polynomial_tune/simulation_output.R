@@ -12,7 +12,6 @@ simulation_output <- function(sample_size,
                               lambda_0 = 0.5, gamma = 0.1,
                               degree   = 4,
                               latency  = 16) {
-  plan(if (Sys.info()[["sysname"]] == "Darwin") "multisession" else "multicore")
   future_map_dfr(1:300, .f = function(sim_id){
     sim_data <- generate_data(sample_size, rho = 0.3, lambda = 0.5,
                               curve  = curve,

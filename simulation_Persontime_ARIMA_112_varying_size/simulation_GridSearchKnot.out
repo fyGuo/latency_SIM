@@ -1,6 +1,16 @@
-> # please change the following directory to your own directory
-> # setwd("/n/home00/fyguo/proj_spline/simulation_PersonTime")
-> setwd("~/proj_spline/simulation_Persontime_ARIMA_112_varying_size")
+> # ── Self-locating working directory ───────────────────────────────────────────
+> # Set the working directory to the folder this script lives in, so the project
+> # can be copied to another machine without editing any path. Works whether the
+> # script is run with Rscript, R CMD BATCH, or "Source"d in RStudio.
+> local({
++   a <- commandArgs(trailingOnly = FALSE)
++   f <- sub("^--file=", "", grep("^--file=", a, value = TRUE))               # Rscript
++   if (!length(f)) { i <- which(a == "-f"); if (length(i)) f <- a[i + 1L] }  # R CMD BATCH
++   if (!length(f) && requireNamespace("rstudioapi", quietly = TRUE) &&
++       rstudioapi::isAvailable())
++     f <- rstudioapi::getSourceEditorContext()$path                          # RStudio
++   if (length(f) && nzchar(f)) setwd(dirname(normalizePath(f)))
++ })
 > source("simulate_personetime.R")
 ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
 ✔ dplyr     1.1.4     ✔ readr     2.1.5
@@ -28,18 +38,26 @@ The following object is masked from ‘package:survival’:
 > # simulate for KnotGridSearch with knot = 10, varying sample size
 > temp <- data.frame()
 > 
-> for (sample_size in c(1000, 3000, 5000)){
+> for (sample_size in c(300, 500, 1000, 3000, 5000)){
 +     result <- simulation_output(sample_size = sample_size, knot = 10, method  = "GridSearchKnot")
 +     result$sample_size <- sample_size
++     cat(sprintf("sample_size = %d: average number of events = %.1f\n",
++                 sample_size, mean(result$n_events, na.rm = TRUE)))
 +     temp <- rbind(temp, result)
++     sprintf("Finished sample size = %d\n", sample_size)
 + }
+sample_size = 300: average number of events = 83.3
+sample_size = 500: average number of events = 137.7
+sample_size = 1000: average number of events = 276.1
+sample_size = 3000: average number of events = 828.4
+sample_size = 5000: average number of events = 1377.3
 > 
 > temp$method <- "GridSearchKnot"
 > saveRDS(temp, "simulation_KnotGridSearch.rds")
 > 
 > Sys.time()
-[1] "2026-06-08 23:47:43 EDT"
+[1] "2026-06-09 15:50:59 EDT"
 > 
 > proc.time()
       user     system    elapsed 
-222107.644    558.428   7707.830 
+222547.098    582.033   7743.794 

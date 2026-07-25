@@ -1,0 +1,57 @@
+\documentclass{article}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage[margin=1in]{geometry}
+
+\begin{document}
+
+\begin{table}[ht]
+\centering
+\caption{Median estimated $\log\mathrm{HR}_p(l)$ over $300$ replicates, bootstrap-percentile interval coverage (target $0.95$), the width of the empirical sampling interval (\emph{true width}, the $2.5/97.5$ percentile range of the point estimates over the replicates) and the average width of the per-replicate bootstrap percentile interval (\emph{est.\ width}), by estimator, true weighting shape, and lag $l$.}
+\label{tab:coverage-widths}
+\begin{tabular}{l l c c c c c}
+\toprule
+Method & Scenario & Lag $l$ & Median $\widehat{\log\mathrm{HR}}_p(l)$ & Coverage & True width & Est.\ width \\
+\midrule
+Knot-search & Unimodal & 1 & 0.0069 & 0.783 & 0.0025 & 0.0026 \\
+Knot-search & Unimodal & 8 & 0.0089 & 0.953 & 0.0030 & 0.0029 \\
+Knot-search & Unimodal & 15 & 0.0005 & 0.947 & 0.0063 & 0.0062 \\
+Knot-search & Bimodal (both peaks $+$) & 1 & 0.0188 & 0.883 & 0.0036 & 0.0036 \\
+Knot-search & Bimodal (both peaks $+$) & 8 & 0.0013 & 0.793 & 0.0039 & 0.0035 \\
+Knot-search & Bimodal (both peaks $+$) & 15 & 0.0012 & 0.910 & 0.0068 & 0.0069 \\
+Knot-search & Bimodal (2nd peak $-$) & 1 & 0.0188 & 0.417 & 0.0016 & 0.0016 \\
+Knot-search & Bimodal (2nd peak $-$) & 8 & -0.0047 & 0.000 & 0.0016 & 0.0017 \\
+Knot-search & Bimodal (2nd peak $-$) & 15 & -0.0102 & 0.893 & 0.0045 & 0.0036 \\
+Knot-search & Exponential decay & 1 & 0.0247 & 0.937 & 0.0029 & 0.0033 \\
+Knot-search & Exponential decay & 8 & 0.0059 & 0.937 & 0.0030 & 0.0034 \\
+Knot-search & Exponential decay & 15 & 0.0016 & 0.950 & 0.0069 & 0.0071 \\
+Knot-search & Constant, $c=0$ & 1 & 0.0000 & 0.963 & 0.0012 & 0.0014 \\
+Knot-search & Constant, $c=0$ & 8 & 0.0000 & 0.960 & 0.0015 & 0.0015 \\
+Knot-search & Constant, $c=0$ & 15 & 0.0000 & 0.950 & 0.0033 & 0.0032 \\
+Knot-search & Constant, $c=0.10$ & 1 & 0.0100 & 0.957 & 0.0039 & 0.0039 \\
+Knot-search & Constant, $c=0.10$ & 8 & 0.0101 & 0.977 & 0.0033 & 0.0043 \\
+Knot-search & Constant, $c=0.10$ & 15 & 0.0100 & 0.970 & 0.0083 & 0.0091 \\
+\midrule
+Term-search & Unimodal & 1 & 0.0064 & 0.953 & 0.0111 & 0.0128 \\
+Term-search & Unimodal & 8 & 0.0091 & 0.953 & 0.0125 & 0.0132 \\
+Term-search & Unimodal & 15 & 0.0004 & 0.950 & 0.0111 & 0.0107 \\
+Term-search & Bimodal (both peaks $+$) & 1 & 0.0173 & 0.953 & 0.0147 & 0.0167 \\
+Term-search & Bimodal (both peaks $+$) & 8 & 0.0020 & 0.953 & 0.0152 & 0.0166 \\
+Term-search & Bimodal (both peaks $+$) & 15 & 0.0017 & 0.973 & 0.0117 & 0.0134 \\
+Term-search & Bimodal (2nd peak $-$) & 1 & 0.0182 & 0.963 & 0.0074 & 0.0072 \\
+Term-search & Bimodal (2nd peak $-$) & 8 & -0.0028 & 0.977 & 0.0068 & 0.0072 \\
+Term-search & Bimodal (2nd peak $-$) & 15 & -0.0096 & 0.960 & 0.0050 & 0.0057 \\
+Term-search & Exponential decay & 1 & 0.0256 & 0.950 & 0.0118 & 0.0149 \\
+Term-search & Exponential decay & 8 & 0.0060 & 0.977 & 0.0126 & 0.0154 \\
+Term-search & Exponential decay & 15 & 0.0016 & 0.963 & 0.0119 & 0.0124 \\
+Term-search & Constant, $c=0$ & 1 & 0.0000 & 0.993 & 0.0058 & 0.0067 \\
+Term-search & Constant, $c=0$ & 8 & 0.0000 & 0.977 & 0.0059 & 0.0069 \\
+Term-search & Constant, $c=0$ & 15 & 0.0000 & 0.960 & 0.0049 & 0.0056 \\
+Term-search & Constant, $c=0.10$ & 1 & 0.0099 & 0.987 & 0.0183 & 0.0194 \\
+Term-search & Constant, $c=0.10$ & 8 & 0.0101 & 0.970 & 0.0149 & 0.0194 \\
+Term-search & Constant, $c=0.10$ & 15 & 0.0099 & 0.947 & 0.0149 & 0.0157 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\end{document}

@@ -61,17 +61,17 @@ raw <- scenarios %>%
     load_one(dir, file, method, scenario_col, keep_val, subsample) %>%
       mutate(scenario = label))
 
-# Per-curve RMSE / MAE, then averaged over simulations.
+# Per-curve integrated squared error (sum over lags), then averaged over
+# simulations to give the Mean Integrated Squared Error (MISE):
+#   MISE = (1/N_sim) sum_sims sum_{l=0}^{15} (f(l) - fhat(l))^2
 summarise_metrics <- function(d, scenario_levels = NULL) {
   out <- d %>%
     mutate(e = log_HR_true - log_HR_estimate) %>%
     group_by(scenario, method, sim_id) %>%
-    summarise(MSE = mean(e^2, na.rm = TRUE),
-              MAE = mean(abs(e), na.rm = TRUE), .groups = "drop") %>%
+    summarise(ISE = sum(e^2, na.rm = TRUE), .groups = "drop") %>%
     group_by(scenario, method) %>%
     summarise(n_sims = n(),
-              RMSE   = mean(sqrt(MSE)),
-              MAE    = mean(MAE), .groups = "drop")
+              MISE   = mean(ISE), .groups = "drop")
   if (!is.null(scenario_levels))
     out <- out %>% mutate(scenario = factor(scenario, levels = scenario_levels))
   out %>%
@@ -79,8 +79,7 @@ summarise_metrics <- function(d, scenario_levels = NULL) {
     arrange(scenario, method)
 }
 
-main_tbl <- summarise_metrics(raw, PANEL_ORDER) %>%
-  mutate(across(c(RMSE, MAE), ~ signif(.x, 3)))
+main_tbl <- summarise_metrics(raw, PANEL_ORDER)
 
 write_csv(main_tbl, "fit_metrics_main.csv")
 cat("== Goodness-of-fit (combined-figure scenarios) ==\n")
@@ -101,10 +100,9 @@ tune_raw <- imap_dfr(tune_dirs, function(dir, crit)
 tune_tbl <- tune_raw %>%
   mutate(e = log_HR_true - log_HR_estimate) %>%
   group_by(criterion, scenario, sim_id) %>%
-  summarise(MSE = mean(e^2), MAE = mean(abs(e)), .groups = "drop") %>%
+  summarise(ISE = sum(e^2), .groups = "drop") %>%
   group_by(criterion, scenario) %>%
-  summarise(n_sims = n(), RMSE = mean(sqrt(MSE)), MAE = mean(MAE), .groups = "drop") %>%
-  mutate(across(c(RMSE, MAE), ~ signif(.x, 3)))
+  summarise(n_sims = n(), MISE = mean(ISE), .groups = "drop")
 
 write_csv(tune_tbl, "fit_metrics_termsearch_tune.csv")
 cat("\n== Goodness-of-fit (Term-Search tuning) ==\n")
@@ -114,14 +112,13 @@ cat("\nSaved fit_metrics_main.csv and fit_metrics_termsearch_tune.csv\n")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Publication-ready LaTeX table (booktabs).  One row per combined-figure panel;
-# RMSE / MAE are reported on a 10^{-3} scale, smallest value in each row in bold.
+# MISE is reported on a 10^{5} scale, smallest value in each row in bold.
 # ══════════════════════════════════════════════════════════════════════════════
-SCALE <- 1000
+SCALE <- 1e5
 
-w2 <- main_tbl %>%
-  mutate(RMSE = RMSE * SCALE, MAE = MAE * SCALE) %>%
-  pivot_wider(id_cols = scenario, names_from = method,
-              values_from = c(RMSE, MAE)) %>%
+mw <- main_tbl %>%
+  mutate(MISE = MISE * SCALE) %>%
+  pivot_wider(id_cols = scenario, names_from = method, values_from = MISE) %>%
   arrange(scenario)
 
 fmt_metric <- function(vals) {                 # bold the row minimum
@@ -131,46 +128,36 @@ fmt_metric <- function(vals) {                 # bold the row minimum
 }
 
 body <- character(0)
-for (i in seq_len(nrow(w2))) {
-  row  <- w2[i, ]
-  rmse <- fmt_metric(vapply(METHOD_LEVELS, function(m) row[[paste0("RMSE_", m)]], numeric(1)))
-  mae  <- fmt_metric(vapply(METHOD_LEVELS, function(m) row[[paste0("MAE_",  m)]], numeric(1)))
-  cells <- as.vector(rbind(rmse, mae))         # RMSE,MAE interleaved per method
+for (i in seq_len(nrow(mw))) {
+  row  <- mw[i, ]
+  vals <- vapply(METHOD_LEVELS, function(m) row[[m]], numeric(1))
   body <- c(body, sprintf("%s & %s\\\\",
-                          as.character(row$scenario), paste(cells, collapse = " & ")))
+                          as.character(row$scenario),
+                          paste(fmt_metric(vals), collapse = " & ")))
 }
 
-# Term-search tuning table: rows = candidate knot grid, columns grouped by the
-# AIC vs BIC selection criterion. For each metric the smaller of the two criteria
-# is bolded so the impact of the criterion is easy to read off.
+# Term-search tuning table: rows = candidate knot grid, AIC vs BIC columns;
+# the smaller of the two criteria is bolded.
 KNOT_ORDER <- c("5 knots", "8 knots", "16 knots")
 CRIT_ORDER <- c("AIC", "BIC")
 
 tw <- tune_tbl %>%
   mutate(grid = factor(str_replace(scenario, "terms", "knots"), levels = KNOT_ORDER),
          criterion = factor(criterion, levels = CRIT_ORDER),
-         RMSE = RMSE * SCALE, MAE = MAE * SCALE) %>%
+         MISE = MISE * SCALE) %>%
   arrange(grid, criterion)
-
-fmt_pair <- function(vals) {                   # bold the smaller of AIC/BIC
-  out <- sprintf("%.2f", vals)
-  out[which.min(vals)] <- paste0("\\textbf{", out[which.min(vals)], "}")
-  out
-}
 
 tune_body <- character(0)
 for (g in KNOT_ORDER) {
-  rg   <- tw %>% filter(grid == g) %>% arrange(criterion)
-  rmse <- fmt_pair(rg$RMSE)
-  mae  <- fmt_pair(rg$MAE)
-  # column order: AIC RMSE, AIC MAE, BIC RMSE, BIC MAE
-  cells <- c(rmse[1], mae[1], rmse[2], mae[2])
-  tune_body <- c(tune_body, sprintf("%s & %s\\\\", g, paste(cells, collapse = " & ")))
+  rg   <- tw %>% filter(grid == g) %>% arrange(criterion)   # AIC, BIC
+  tune_body <- c(tune_body, sprintf("%s & %s\\\\", g,
+                                    paste(fmt_metric(rg$MISE), collapse = " & ")))
 }
 
 tex <- c(
   "\\documentclass{article}",
   "\\usepackage{booktabs}",
+  "\\usepackage{amsmath}",
   "\\usepackage[margin=1in]{geometry}",
   "\\begin{document}",
   "",
@@ -178,17 +165,15 @@ tex <- c(
   "\\centering",
   "\\caption{Goodness of fit of the weighted-cumulative-exposure log-hazard-ratio",
   "  estimators across the six simulation scenarios of Figure~\\ref{fig:combined}.",
-  "  Entries are the root-mean-square error (RMSE) and mean absolute error (MAE)",
+  "  Entries are the mean integrated squared error,",
+  "  $\\mathrm{MISE}=\\frac{1}{300}\\sum_{\\text{sims}}\\sum_{l=0}^{15}\\bigl(f(l)-\\hat f(l)\\bigr)^2$,",
   "  of $\\hat f(l)$ relative to the true curve over lags $l=0,\\dots,15$, averaged",
   "  over 300 simulations; the smallest value in each row is in bold. All entries",
-  "  are multiplied by $10^{3}$.}",
+  "  are multiplied by $10^{5}$.}",
   "\\label{tab:fit-metrics}",
-  "\\begin{tabular}{l cc cc cc}",
+  "\\begin{tabular}{l c c c}",
   "\\toprule",
-  sprintf("& \\multicolumn{2}{c}{%s} & \\multicolumn{2}{c}{%s} & \\multicolumn{2}{c}{%s}\\\\",
-          METHOD_LEVELS[1], METHOD_LEVELS[2], METHOD_LEVELS[3]),
-  "\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}\\cmidrule(lr){6-7}",
-  "Scenario & RMSE & MAE & RMSE & MAE & RMSE & MAE\\\\",
+  sprintf("Scenario & %s & %s & %s\\\\", METHOD_LEVELS[1], METHOD_LEVELS[2], METHOD_LEVELS[3]),
   "\\midrule",
   body,
   "\\bottomrule",
@@ -200,14 +185,11 @@ tex <- c(
   "\\caption{Goodness of fit of the term-search RCspline estimator under different",
   "  candidate knot grids and model-selection criteria (unimodal scenario, 300",
   "  simulations). Columns compare the AIC and BIC selection criteria used inside",
-  "  the term search; for each metric the smaller of the two criteria is in bold.",
-  "  RMSE and MAE are multiplied by $10^{3}$.}",
+  "  the term search; the smaller of the two is in bold. MISE is multiplied by $10^{5}$.}",
   "\\label{tab:fit-tune}",
-  "\\begin{tabular}{l cc cc}",
+  "\\begin{tabular}{l c c}",
   "\\toprule",
-  "& \\multicolumn{2}{c}{AIC} & \\multicolumn{2}{c}{BIC}\\\\",
-  "\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}",
-  "Candidate knot grid & RMSE & MAE & RMSE & MAE\\\\",
+  "Candidate knot grid & AIC & BIC\\\\",
   "\\midrule",
   tune_body,
   "\\bottomrule",

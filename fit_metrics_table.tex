@@ -1,5 +1,6 @@
 \documentclass{article}
 \usepackage{booktabs}
+\usepackage{amsmath}
 \usepackage[margin=1in]{geometry}
 \begin{document}
 
@@ -7,23 +8,22 @@
 \centering
 \caption{Goodness of fit of the weighted-cumulative-exposure log-hazard-ratio
   estimators across the six simulation scenarios of Figure~\ref{fig:combined}.
-  Entries are the root-mean-square error (RMSE) and mean absolute error (MAE)
+  Entries are the mean integrated squared error,
+  $\mathrm{MISE}=\frac{1}{300}\sum_{\text{sims}}\sum_{l=0}^{15}\bigl(f(l)-\hat f(l)\bigr)^2$,
   of $\hat f(l)$ relative to the true curve over lags $l=0,\dots,15$, averaged
   over 300 simulations; the smallest value in each row is in bold. All entries
-  are multiplied by $10^{3}$.}
+  are multiplied by $10^{5}$.}
 \label{tab:fit-metrics}
-\begin{tabular}{l cc cc cc}
+\begin{tabular}{l c c c}
 \toprule
-& \multicolumn{2}{c}{Knot-search RCspline} & \multicolumn{2}{c}{Term-search RCspline} & \multicolumn{2}{c}{Polynomial (df=5)}\\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
-Scenario & RMSE & MAE & RMSE & MAE & RMSE & MAE\\
+Scenario & Knot-search RCspline & Term-search RCspline & Polynomial (df=5)\\
 \midrule
-Unimodal & 0.94 & 0.72 & 2.59 & 2.03 & \textbf{0.82} & \textbf{0.63}\\
-Damped exponential & 0.90 & 0.68 & 2.04 & 1.62 & \textbf{0.60} & \textbf{0.46}\\
-Bimodal 1 & 2.20 & 1.96 & \textbf{1.46} & \textbf{1.16} & 2.02 & 1.79\\
-Bimodal 2 & \textbf{2.30} & \textbf{1.84} & 6.36 & 5.15 & 3.84 & 3.08\\
-Null effects & \textbf{0.32} & \textbf{0.26} & 1.18 & 0.90 & 0.39 & 0.31\\
-Constant positive effects & \textbf{2.51} & \textbf{2.09} & 8.51 & 6.76 & 2.80 & 2.23\\
+Unimodal & 1.54 & 12.47 & \textbf{1.19}\\
+Damped exponential & 1.32 & 7.60 & \textbf{0.62}\\
+Bimodal 1 & 7.72 & \textbf{3.82} & 6.52\\
+Bimodal 2 & \textbf{9.04} & 72.73 & 23.90\\
+Null effects & \textbf{0.21} & 2.94 & 0.28\\
+Constant positive effects & \textbf{12.54} & 143.69 & 14.53\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -33,18 +33,15 @@ Constant positive effects & \textbf{2.51} & \textbf{2.09} & 8.51 & 6.76 & 2.80 &
 \caption{Goodness of fit of the term-search RCspline estimator under different
   candidate knot grids and model-selection criteria (unimodal scenario, 300
   simulations). Columns compare the AIC and BIC selection criteria used inside
-  the term search; for each metric the smaller of the two criteria is in bold.
-  RMSE and MAE are multiplied by $10^{3}$.}
+  the term search; the smaller of the two is in bold. MISE is multiplied by $10^{5}$.}
 \label{tab:fit-tune}
-\begin{tabular}{l cc cc}
+\begin{tabular}{l c c}
 \toprule
-& \multicolumn{2}{c}{AIC} & \multicolumn{2}{c}{BIC}\\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}
-Candidate knot grid & RMSE & MAE & RMSE & MAE\\
+Candidate knot grid & AIC & BIC\\
 \midrule
-5 knots & \textbf{0.99} & \textbf{0.76} & 1.26 & 1.01\\
-8 knots & 1.11 & 0.87 & \textbf{1.09} & \textbf{0.86}\\
-16 knots & 2.70 & 2.11 & \textbf{1.40} & \textbf{1.04}\\
+5 knots & \textbf{1.63} & 2.66\\
+8 knots & 2.25 & \textbf{2.19}\\
+16 knots & 13.12 & \textbf{3.81}\\
 \bottomrule
 \end{tabular}
 \end{table}

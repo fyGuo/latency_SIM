@@ -64,7 +64,8 @@ summarise_results <- function(path, method_label) {
 load_case <- function(dir, case_name) {
   bind_rows(
     summarise_results(file.path(dir, "simulation_KnotGridSearch.rds"), "Knot-search"),
-    summarise_results(file.path(dir, "simulation_TermSearch.rds"),     "Term-Search")
+    summarise_results(file.path(dir, "simulation_TermSearch.rds"),     "Term-Search"),
+    summarise_results(file.path(dir, "simulation_Polynomial.rds"),     "Polynomial (df=5)")
   ) %>%
     mutate(case = case_name)
 }
@@ -83,7 +84,7 @@ temp <- bind_rows(uni, bim) %>%
     ),
     case    = factor(case, levels = case_levels),
     latency = factor(paste0("latency==", latency)),
-    method  = factor(method, levels = c("Knot-search", "Term-Search"))
+    method  = factor(method, levels = c("Knot-search", "Term-Search", "Polynomial (df=5)"))
   )
 
 # ── Panel builder: one method, rows = latency, cols = case ────────────────────
@@ -115,11 +116,12 @@ make_panel <- function(method_label) {
 
 panel_knot <- make_panel("Knot-search")
 panel_term <- make_panel("Term-Search")
+panel_poly <- make_panel("Polynomial (df=5)")
 
-# ── Stack the two panels (A = Knot-search, B = Term-Search) ───────────────────
-fig <- ggarrange(panel_knot, panel_term,
-                 labels = c("A", "B"),
-                 ncol = 1, nrow = 2)
+# ── Stack the three panels (A = Knot-search, B = Term-Search, C = Polynomial) ──
+fig <- ggarrange(panel_knot, panel_term, panel_poly,
+                 labels = c("A", "B", "C"),
+                 ncol = 1, nrow = 3)
 
 fig <- annotate_figure(
   fig,
@@ -128,6 +130,6 @@ fig <- annotate_figure(
     hjust = 0, x = 0.01, size = 9))
 
 width  <- 30
-height <- width * 0.8
+height <- width * 1.15
 ggsave("figure_misspecified_latency.png", plot = fig,
        units = "cm", height = height, width = width, dpi = 300)

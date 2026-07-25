@@ -1,0 +1,73 @@
+scenario,latency,n_rep,n_failed,method,degree
+Bimodal 1,10,300,0,Knot-search,NA
+Bimodal 1,13,300,0,Knot-search,NA
+Bimodal 1,16,300,0,Knot-search,NA
+Bimodal 1,19,300,0,Knot-search,NA
+Bimodal 1,22,300,0,Knot-search,NA
+Bimodal 1,25,300,0,Knot-search,NA
+Bimodal 2,10,300,0,Knot-search,NA
+Bimodal 2,13,300,0,Knot-search,NA
+Bimodal 2,16,300,0,Knot-search,NA
+Bimodal 2,19,300,0,Knot-search,NA
+Bimodal 2,22,300,0,Knot-search,NA
+Bimodal 2,25,300,0,Knot-search,NA
+Decayed,10,300,0,Knot-search,NA
+Decayed,13,300,0,Knot-search,NA
+Decayed,16,300,0,Knot-search,NA
+Decayed,19,300,0,Knot-search,NA
+Decayed,22,300,0,Knot-search,NA
+Decayed,25,300,0,Knot-search,NA
+Unimodal,10,1000,0,Knot-search,NA
+Unimodal,13,1000,0,Knot-search,NA
+Unimodal,16,1000,0,Knot-search,NA
+Unimodal,19,1000,0,Knot-search,NA
+Unimodal,22,1000,0,Knot-search,NA
+Unimodal,25,1000,0,Knot-search,NA
+Bimodal 1,10,300,0,Polynomial (df=5),5
+Bimodal 1,13,300,0,Polynomial (df=5),5
+Bimodal 1,16,300,0,Polynomial (df=5),5
+Bimodal 1,19,300,0,Polynomial (df=5),5
+Bimodal 1,22,300,0,Polynomial (df=5),5
+Bimodal 1,25,300,0,Polynomial (df=5),5
+Bimodal 2,10,300,0,Polynomial (df=5),5
+Bimodal 2,13,300,0,Polynomial (df=5),5
+Bimodal 2,16,300,0,Polynomial (df=5),5
+Bimodal 2,19,300,0,Polynomial (df=5),5
+Bimodal 2,22,300,0,Polynomial (df=5),5
+Bimodal 2,25,300,0,Polynomial (df=5),5
+Decayed,10,300,0,Polynomial (df=5),5
+Decayed,13,300,0,Polynomial (df=5),5
+Decayed,16,300,0,Polynomial (df=5),5
+Decayed,19,300,0,Polynomial (df=5),5
+Decayed,22,300,0,Polynomial (df=5),5
+Decayed,25,300,0,Polynomial (df=5),5
+Unimodal,10,300,0,Polynomial (df=5),5
+Unimodal,13,300,0,Polynomial (df=5),5
+Unimodal,16,300,0,Polynomial (df=5),5
+Unimodal,19,300,0,Polynomial (df=5),5
+Unimodal,22,300,0,Polynomial (df=5),5
+Unimodal,25,300,0,Polynomial (df=5),5
+Bimodal 1,10,300,0,Term-Search,NA
+Bimodal 1,13,300,0,Term-Search,NA
+Bimodal 1,16,300,0,Term-Search,NA
+Bimodal 1,19,300,0,Term-Search,NA
+Bimodal 1,22,300,0,Term-Search,NA
+Bimodal 1,25,300,0,Term-Search,NA
+Bimodal 2,10,300,0,Term-Search,NA
+Bimodal 2,13,300,0,Term-Search,NA
+Bimodal 2,16,300,0,Term-Search,NA
+Bimodal 2,19,300,0,Term-Search,NA
+Bimodal 2,22,300,0,Term-Search,NA
+Bimodal 2,25,300,0,Term-Search,NA
+Decayed,10,300,0,Term-Search,NA
+Decayed,13,300,0,Term-Search,NA
+Decayed,16,300,0,Term-Search,NA
+Decayed,19,300,0,Term-Search,NA
+Decayed,22,300,0,Term-Search,NA
+Decayed,25,300,0,Term-Search,NA
+Unimodal,10,1000,0,Term-Search,NA
+Unimodal,13,1000,0,Term-Search,NA
+Unimodal,16,1000,0,Term-Search,NA
+Unimodal,19,1000,0,Term-Search,NA
+Unimodal,22,1000,0,Term-Search,NA
+Unimodal,25,1000,0,Term-Search,NA

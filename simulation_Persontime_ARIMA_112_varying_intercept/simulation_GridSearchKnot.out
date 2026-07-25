@@ -1,0 +1,69 @@
+> # ── Self-locating working directory ───────────────────────────────────────────
+> # Set the working directory to the folder this script lives in, so the project
+> # can be copied to another machine without editing any path. Works whether the
+> # script is run with Rscript, R CMD BATCH, or "Source"d in RStudio.
+> local({
++   a <- commandArgs(trailingOnly = FALSE)
++   f <- sub("^--file=", "", grep("^--file=", a, value = TRUE))               # Rscript
++   if (!length(f)) { i <- which(a == "-f"); if (length(i)) f <- a[i + 1L] }  # R CMD BATCH
++   if (!length(f) && requireNamespace("rstudioapi", quietly = TRUE) &&
++       rstudioapi::isAvailable())
++     f <- rstudioapi::getSourceEditorContext()$path                          # RStudio
++   if (length(f) && nzchar(f)) setwd(dirname(normalizePath(f)))
++ })
+> source("simulate_personetime.R")
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.4     ✔ tidyr     1.3.1
+✔ purrr     1.0.2     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+> source("simulation_output.R")
+
+Attaching package: ‘future’
+
+The following object is masked from ‘package:survival’:
+
+    cluster
+
+> 
+> library(future)
+> library(furrr)
+> library(LatencyA)
+> 
+> plan("multicore")
+> 
+> # simulate for KnotGridSearch with sample_size = 5000, knot = 10, varying intercept
+> temp <- data.frame()
+> 
+> for (intercept in c(-4, -2.5, -1.5, 0)){
++     result <- simulation_output(sample_size = 5000, knot = 10, intercept = intercept, method  = "GridSearchKnot")
++     result$intercept <- intercept
++     n_fail <- sum(result$fit_failed[!duplicated(result$sim_id)], na.rm = TRUE)
++     cat(sprintf("intercept = %g: average number of events = %.1f | failed fits = %d/300\n",
++                 intercept, mean(result$n_events, na.rm = TRUE), n_fail))
++     temp <- rbind(temp, result)
++     cat(sprintf("Finished intercept = %g\n", intercept))
++ }
+intercept = -4: average number of events = 60.8 | failed fits = 0/300
+Finished intercept = -4
+intercept = -2.5: average number of events = 239.9 | failed fits = 0/300
+Finished intercept = -2.5
+intercept = -1.5: average number of events = 536.1 | failed fits = 0/300
+Finished intercept = -1.5
+intercept = 0: average number of events = 1377.5 | failed fits = 0/300
+Finished intercept = 0
+> 
+> temp$method <- "GridSearchKnot"
+> saveRDS(temp, "simulation_KnotGridSearch.rds")
+> 
+> Sys.time()
+[1] "2026-06-10 04:29:06 EDT"
+> 
+> proc.time()
+      user     system    elapsed 
+627038.921   1319.334  21694.069 
